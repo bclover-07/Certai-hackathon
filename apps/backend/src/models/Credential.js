@@ -116,7 +116,7 @@ const credentialSchema = new mongoose.Schema(
 );
 
 credentialSchema.index({ holderAddress: 1, status: 1 });
-credentialSchema.index({ tokenId: 1 }, { sparse: true });
+
 credentialSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model("Credential", credentialSchema);

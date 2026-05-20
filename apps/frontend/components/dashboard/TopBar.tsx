@@ -10,7 +10,7 @@ interface TopBarProps {
 }
 
 export default function TopBar({ onOpenMobileMenu }: TopBarProps) {
-  const { user } = usePrivy();
+  const { user, getAccessToken } = usePrivy();
   const { address, balance, setWallet } = useWalletStore();
   const [profile, setProfile] = useState<any>(null);
 
@@ -26,7 +26,12 @@ export default function TopBar({ onOpenMobileMenu }: TopBarProps) {
     if (!address) return;
     const fetchProfile = async () => {
       try {
-        const res = await fetch(`${BACKEND_URL}/api/v1/users/${address}`);
+        const token = await getAccessToken();
+        const res = await fetch(`${BACKEND_URL}/api/v1/users/${address}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         if (res.ok) {
           const data = await res.json();
           if (data.success && data.data) {

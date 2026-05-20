@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";
 import { BACKEND_URL } from "../../../lib/constants";
 import { useWalletStore } from "../../../store/walletStore";
@@ -9,9 +8,8 @@ import GlassCard from "../../../components/ui/GlassCard";
 import NeonButton from "../../../components/ui/NeonButton";
 
 export default function ProfilePage() {
-  const { user, getAccessToken } = usePrivy();
+  const { getAccessToken } = usePrivy();
   const { address } = useWalletStore();
-  const router = useRouter();
 
   const [displayName, setDisplayName] = useState("");
   const [specialty, setSpecialty] = useState("");

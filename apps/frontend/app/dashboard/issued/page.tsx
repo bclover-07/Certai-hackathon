@@ -6,9 +6,11 @@ import { useWalletStore } from "../../../store/walletStore";
 import CredentialCard from "../../../components/dashboard/CredentialCard";
 import NeonButton from "../../../components/ui/NeonButton";
 import { useRouter } from "next/navigation";
+import { usePrivy } from "@privy-io/react-auth";
 
 export default function IssuedPage() {
   const { address } = useWalletStore();
+  const { getAccessToken } = usePrivy();
   const [credentials, setCredentials] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
@@ -17,7 +19,10 @@ export default function IssuedPage() {
     if (!address) return;
     const fetchCredentials = async () => {
       try {
-        const res = await fetch(`${BACKEND_URL}/api/v1/credentials/holder/${address}`);
+        const token = await getAccessToken();
+        const res = await fetch(`${BACKEND_URL}/api/v1/credentials/holder/${address}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         if (res.ok) {
           const data = await res.json();
           if (data.success && Array.isArray(data.data)) {
@@ -31,7 +36,7 @@ export default function IssuedPage() {
       }
     };
     fetchCredentials();
-  }, [address]);
+  }, [address, getAccessToken]);
 
   return (
     <div className="space-y-8 animate-fade-in">

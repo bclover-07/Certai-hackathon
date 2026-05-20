@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { BACKEND_URL } from "../../../lib/constants";
 import GlassCard from "../../../components/ui/GlassCard";
+import { usePrivy } from "@privy-io/react-auth";
 
 interface LeaderboardUser {
   walletAddress: string;
@@ -20,11 +21,15 @@ interface LeaderboardUser {
 export default function LeaderboardPage() {
   const [board, setBoard] = useState<LeaderboardUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { getAccessToken } = usePrivy();
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
-        const res = await fetch(`${BACKEND_URL}/api/v1/leaderboard`);
+        const token = await getAccessToken();
+        const res = await fetch(`${BACKEND_URL}/api/v1/leaderboard`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         if (res.ok) {
           const data = await res.json();
           if (data.success && Array.isArray(data.data)) {
@@ -38,7 +43,7 @@ export default function LeaderboardPage() {
       }
     };
     fetchLeaderboard();
-  }, []);
+  }, [getAccessToken]);
 
   return (
     <div className="space-y-8 animate-fade-in">

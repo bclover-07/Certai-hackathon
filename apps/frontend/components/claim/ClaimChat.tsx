@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useClaimStore, Message } from "../../store/claimStore";
+import { useClaimStore } from "../../store/claimStore";
 import VoiceInput from "./VoiceInput";
 
 interface ClaimChatProps {

@@ -20,7 +20,12 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   title: "CERTAI — SoulBound Credential Registry",
   description: "AI-powered, gasless credentialing system for healthcare and education built on Base Sepolia using Universal Gas Framework.",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({

@@ -7,7 +7,7 @@ import LandingScene from "../components/three/LandingScene";
 import NeonButton from "../components/ui/NeonButton";
 
 export default function Home() {
-  const { login, authenticated, ready, user } = usePrivy();
+  const { login, authenticated, ready } = usePrivy();
   const router = useRouter();
 
   useEffect(() => {

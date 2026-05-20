@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { BACKEND_URL } from "../../lib/constants";
 import { useWalletStore } from "../../store/walletStore";
+import { usePrivy } from "@privy-io/react-auth";
 
 interface Activity {
   id: string;
@@ -16,6 +17,7 @@ interface Activity {
 
 export default function ActivityFeed() {
   const { address } = useWalletStore();
+  const { getAccessToken } = usePrivy();
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -23,7 +25,12 @@ export default function ActivityFeed() {
     if (!address) return;
     const fetchActivity = async () => {
       try {
-        const res = await fetch(`${BACKEND_URL}/api/v1/credentials/holder/${address}`);
+        const token = await getAccessToken();
+        const res = await fetch(`${BACKEND_URL}/api/v1/credentials/holder/${address}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         if (res.ok) {
           const data = await res.json();
           if (data.success && Array.isArray(data.data)) {
@@ -68,7 +75,7 @@ export default function ActivityFeed() {
       }
     };
     fetchActivity();
-  }, [address]);
+  }, [address, getAccessToken]);
 
   if (isLoading) {
     return (

@@ -17,25 +17,49 @@ const BREAKDOWN_FIELD_MAP = {
 
 const updatePoints = async (walletAddress, action, amount = 1) => {
   const addr = walletAddress.toLowerCase();
-  const pointsPerUnit = POINTS_MAP[action];
-
-  if (!pointsPerUnit) {
-    throw new Error(`Unknown action: ${action}. Valid actions: ${Object.keys(POINTS_MAP).join(", ")}`);
+  
+  let normalizedAction = action;
+  let hours = 0;
+  
+  if (action === "mint") {
+    normalizedAction = "credential_minted";
+    if (amount && typeof amount === "object" && amount.hours) {
+      hours = amount.hours;
+    }
+  } else if (action === "endorse") {
+    normalizedAction = "endorsement_received";
+  } else if (action === "verify") {
+    normalizedAction = "verification_run";
   }
-
-  const totalPoints = pointsPerUnit * amount;
-  const breakdownField = BREAKDOWN_FIELD_MAP[action];
-
+  
+  const actualAmount = (amount && typeof amount === "object") ? 1 : amount;
+  const pointsPerUnit = POINTS_MAP[normalizedAction];
+  
+  if (!pointsPerUnit) {
+    throw new Error(`Unknown action: ${normalizedAction}. Valid actions: ${Object.keys(POINTS_MAP).join(", ")}`);
+  }
+  
+  const totalPoints = pointsPerUnit * actualAmount;
+  const breakdownField = BREAKDOWN_FIELD_MAP[normalizedAction];
+  
   const userUpdate = {};
   userUpdate[`stats.points`] = totalPoints;
-  if (action === "credential_minted") {
-    userUpdate["stats.credentialsMinted"] = amount;
-  } else if (action === "endorsement_received") {
-    userUpdate["stats.endorsementsReceived"] = amount;
-  } else if (action === "verification_run") {
-    userUpdate["stats.verificationsRun"] = amount;
-  } else if (action === "hour_logged") {
-    userUpdate["stats.totalHoursLogged"] = amount;
+  if (normalizedAction === "credential_minted") {
+    userUpdate["stats.credentialsMinted"] = actualAmount;
+  } else if (normalizedAction === "endorsement_received") {
+    userUpdate["stats.endorsementsReceived"] = actualAmount;
+  } else if (normalizedAction === "verification_run") {
+    userUpdate["stats.verificationsRun"] = actualAmount;
+  } else if (normalizedAction === "hour_logged") {
+    userUpdate["stats.totalHoursLogged"] = actualAmount;
+  }
+
+  if (hours > 0) {
+    try {
+      await updatePoints(walletAddress, "hour_logged", hours);
+    } catch (err) {
+      console.error("Failed to update points for hours logged:", err.message);
+    }
   }
 
   await User.findOneAndUpdate(

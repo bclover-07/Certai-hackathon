@@ -7,10 +7,12 @@ import { BACKEND_URL } from "../../../lib/constants";
 import CredentialWorld from "../../../components/three/CredentialWorld";
 import GlassCard from "../../../components/ui/GlassCard";
 import Badge from "../../../components/ui/Badge";
+import { usePrivy } from "@privy-io/react-auth";
 
 export default function WorldPage() {
   const { address } = useWalletStore();
   const { selectedCredentialId, clearSelection } = useWorldStore();
+  const { getAccessToken } = usePrivy();
   const [credentials, setCredentials] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -18,7 +20,10 @@ export default function WorldPage() {
     if (!address) return;
     const fetchCredentials = async () => {
       try {
-        const res = await fetch(`${BACKEND_URL}/api/v1/credentials/holder/${address}`);
+        const token = await getAccessToken();
+        const res = await fetch(`${BACKEND_URL}/api/v1/credentials/holder/${address}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         if (res.ok) {
           const data = await res.json();
           if (data.success && Array.isArray(data.data)) {
@@ -32,7 +37,7 @@ export default function WorldPage() {
       }
     };
     fetchCredentials();
-  }, [address]);
+  }, [address, getAccessToken]);
 
   // Find currently inspected card details
   const inspectedCred = credentials.find((c) => c._id === selectedCredentialId);

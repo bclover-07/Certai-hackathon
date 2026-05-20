@@ -69,7 +69,8 @@ const validateEndorsement = (req, res, next) => {
 };
 
 const validateVerification = (req, res, next) => {
-  const { verifierAddress, credentialTokenId } = req.body;
+  const { verifierAddress } = req.body;
+  const tokenVal = req.body.tokenId !== undefined ? req.body.tokenId : req.body.credentialTokenId;
 
   const errors = [];
 
@@ -77,8 +78,16 @@ const validateVerification = (req, res, next) => {
     errors.push("verifierAddress must be a valid Ethereum address.");
   }
 
-  if (credentialTokenId === undefined || credentialTokenId === null || typeof credentialTokenId !== "number") {
-    errors.push("credentialTokenId is required and must be a number.");
+  if (tokenVal === undefined || tokenVal === null) {
+    errors.push("credentialTokenId or tokenId is required.");
+  } else {
+    const parsed = Number(tokenVal);
+    if (isNaN(parsed)) {
+      errors.push("credentialTokenId or tokenId must be a valid number.");
+    } else {
+      req.body.tokenId = parsed.toString();
+      req.body.credentialTokenId = parsed;
+    }
   }
 
   if (errors.length > 0) {

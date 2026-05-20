@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 import { BACKEND_URL } from "../../lib/constants";
 import { useWalletStore } from "../../store/walletStore";
 import GlassCard from "../ui/GlassCard";
+import { usePrivy } from "@privy-io/react-auth";
 
 export default function StatsGrid() {
   const { address } = useWalletStore();
+  const { getAccessToken } = usePrivy();
   const [stats, setStats] = useState({
     credentialsMinted: 0,
     endorsementsReceived: 0,
@@ -19,7 +21,12 @@ export default function StatsGrid() {
     if (!address) return;
     const fetchStats = async () => {
       try {
-        const res = await fetch(`${BACKEND_URL}/api/v1/users/${address}`);
+        const token = await getAccessToken();
+        const res = await fetch(`${BACKEND_URL}/api/v1/users/${address}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         if (res.ok) {
           const data = await res.json();
           if (data.success && data.data) {
@@ -38,7 +45,7 @@ export default function StatsGrid() {
       }
     };
     fetchStats();
-  }, [address]);
+  }, [address, getAccessToken]);
 
   const cards = [
     {

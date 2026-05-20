@@ -5,9 +5,11 @@ import { BACKEND_URL } from "../../../lib/constants";
 import { useWalletStore } from "../../../store/walletStore";
 import GlassCard from "../../../components/ui/GlassCard";
 import NeonButton from "../../../components/ui/NeonButton";
+import { usePrivy } from "@privy-io/react-auth";
 
 export default function EndorsementsPage() {
   const { address } = useWalletStore();
+  const { getAccessToken } = usePrivy();
   const [endorsements, setEndorsements] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -22,9 +24,12 @@ export default function EndorsementsPage() {
     if (!address) return;
     const fetchEndorsements = async () => {
       try {
-        const res = await fetch(`${BACKEND_URL}/api/v1/endorse/:address`); // Wait, let's look at received endorsements routes: `/api/v1/endorse/received/:address`
-        // Let's use `/api/v1/endorse/received/${address}` to match backend routes!
-        const resReal = await fetch(`${BACKEND_URL}/api/v1/endorse/received/${address}`);
+        const token = await getAccessToken();
+        const resReal = await fetch(`${BACKEND_URL}/api/v1/endorse/received/${address}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         if (resReal.ok) {
           const data = await resReal.json();
           if (data.success && Array.isArray(data.data)) {
@@ -38,7 +43,7 @@ export default function EndorsementsPage() {
       }
     };
     fetchEndorsements();
-  }, [address]);
+  }, [address, getAccessToken]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,10 +51,12 @@ export default function EndorsementsPage() {
 
     setIsSubmitting(true);
     try {
+      const token = await getAccessToken();
       const res = await fetch(`${BACKEND_URL}/api/v1/endorse`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           endorserAddress: address || "0x0000000000000000000000000000000000000000",

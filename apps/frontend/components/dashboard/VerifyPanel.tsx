@@ -4,6 +4,7 @@ import { useState } from "react";
 import { BACKEND_URL } from "../../lib/constants";
 import { useWalletStore } from "../../store/walletStore";
 import GlassCard from "../ui/GlassCard";
+import { usePrivy } from "@privy-io/react-auth";
 import NeonButton from "../ui/NeonButton";
 
 export default function VerifyPanel() {
@@ -13,6 +14,7 @@ export default function VerifyPanel() {
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const { address } = useWalletStore();
+  const { getAccessToken } = usePrivy();
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,13 +25,16 @@ export default function VerifyPanel() {
     setError(null);
 
     try {
+      const token = await getAccessToken();
       const res = await fetch(`${BACKEND_URL}/api/v1/verify`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           tokenId: parseInt(tokenId),
+          credentialTokenId: parseInt(tokenId),
           verifierAddress: address || "0x0000000000000000000000000000000000000000",
           purpose,
         }),

@@ -4,7 +4,6 @@ import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { usePrivy } from "@privy-io/react-auth";
 import { NAV_ITEMS } from "../../lib/constants";
-import { useWalletStore } from "../../store/walletStore";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -15,7 +14,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { logout } = usePrivy();
-  const { address } = useWalletStore();
 
   const handleLogout = async () => {
     await logout();

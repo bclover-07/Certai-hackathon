@@ -1,6 +1,12 @@
 const { Annotation, StateGraph } = require("@langchain/langgraph");
 const { v4: uuidv4 } = require("uuid");
-const ClaimSession = require("../models/ClaimSession");
+const inMemorySessions = new Map();
+class MockSession {
+  constructor(data) { Object.assign(this, data, { save: async () => this }); }
+  static async findOne({ sessionId }) { return inMemorySessions.get(sessionId); }
+  static async create(data) { const s = new MockSession(data); inMemorySessions.set(data.sessionId, s); return s; }
+}
+const ClaimSession = MockSession;
 const geminiService = require("./geminiService");
 const huggingfaceService = require("./huggingfaceService");
 const groqService = require("./groqService");
