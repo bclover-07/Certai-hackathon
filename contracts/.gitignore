@@ -1,0 +1,16 @@
+# dependencies
+node_modules/
+
+# local env files
+.env
+.env.local
+
+# hardhat artifacts
+artifacts/
+cache/
+typechain-types/
+coverage/
+coverage.json
+
+# deployments
+deployed.json

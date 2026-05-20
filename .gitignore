@@ -1,0 +1,29 @@
+# dependencies
+node_modules/
+
+# local env files
+.env
+.env.local
+.env.development
+.env.production
+.env.staging
+.env*.local
+
+# Next.js build
+.next/
+out/
+
+# Hardhat build
+artifacts/
+cache/
+typechain-types/
+
+# IDE files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
