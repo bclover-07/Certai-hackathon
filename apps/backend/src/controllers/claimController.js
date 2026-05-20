@@ -15,7 +15,6 @@ const parseClaim = async (req, res, next) => {
       return res.status(400).json(error('Wallet address required'));
     }
 
-    // Run LangGraph credential validation agent
     const result = await aiService.runCredentialAgent({
       claimText: claimText.trim(),
       walletAddress,
@@ -23,7 +22,6 @@ const parseClaim = async (req, res, next) => {
       userRole: role
     });
 
-    // Save pending credential record in database
     let credentialRecord = null;
     if (result.credential && result.credential.credentialType !== 'invalid') {
       credentialRecord = await Credential.create({
@@ -41,7 +39,6 @@ const parseClaim = async (req, res, next) => {
       });
     }
 
-    // Update user background task
     setImmediate(async () => {
       try {
         await User.findOneAndUpdate(

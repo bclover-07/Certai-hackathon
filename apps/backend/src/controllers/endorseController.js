@@ -26,7 +26,6 @@ const createEndorsement = async (req, res, next) => {
       status: txHash ? 'confirmed' : 'pending'
     });
 
-    // Update leaderboard points for endorsement
     try {
       await leaderboardService.updatePoints(recipientAddress, 'endorse');
     } catch (e) {

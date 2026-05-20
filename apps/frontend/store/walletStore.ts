@@ -12,7 +12,7 @@ interface WalletState {
 
 export const useWalletStore = create<WalletState>((set) => ({
   address: null,
-  balance: '100.00', // Default mock UGF dollar balance for testing
+  balance: '100.00', 
   isConnected: false,
   displayName: null,
 

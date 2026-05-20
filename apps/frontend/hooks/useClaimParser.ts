@@ -13,7 +13,6 @@ export const useClaimParser = () => {
     setIsLoading(true);
     setError(null);
 
-    // Optimistically add user message to store
     addMessage({ role: 'user', content: claimText });
 
     try {
@@ -38,14 +37,12 @@ export const useClaimParser = () => {
         throw new Error(data.error || 'Failed to analyze claim');
       }
 
-      // Add assistant response to store
       addMessage({
         role: 'assistant',
         content: data.data.conversationalReply,
         credential: data.data.credential
       });
 
-      // Update current parsed credential in store
       if (data.data.credential && data.data.credential.credentialType !== 'invalid') {
         setCredential({
           ...data.data.credential,

@@ -4,7 +4,6 @@ import { useWalletStore } from '../store/walletStore';
 import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { BACKEND_URL } from '../lib/constants';
 
-// We import UGFClient if available, otherwise fallback to custom simulation
 let UGFClient: any = null;
 try {
   const UGFModule = require('@tychilabs/ugf-testnet-js');
@@ -29,13 +28,11 @@ export const useUGFExecute = () => {
     });
 
     try {
-      // Find Privy embedded wallet or connected EOA
       const activeWallet = wallets.find((w) => w.address.toLowerCase() === address.toLowerCase()) || wallets[0];
       if (!activeWallet) {
         throw new Error('No active wallet found');
       }
 
-      // 1. Get EIP-1193 Provider and construct standard Signer interface
       const ethereumProvider = await activeWallet.getEthereumProvider();
       const provider = ethereumProvider as any;
       const signer = {
@@ -55,31 +52,26 @@ export const useUGFExecute = () => {
         }
       } as any;
 
-      // If UGF SDK is imported and configured, run actual flow
       if (UGFClient) {
         const client = new UGFClient();
 
-        // Stage: Login / Auth
         await client.auth.login(signer);
 
-        // Prep Tx Object
         const txObj = {
           to: currentCredential.contractAddress,
           data: currentCredential.calldata,
           value: '0'
         };
 
-        // Stage: Quote
         const quote = await client.quote.get({
           payment_coin: 'TYI_MOCK_USD',
-          payment_chain: '84532', // Base Sepolia
+          payment_chain: '84532', 
           payment_chain_type: 'evm',
           tx_object: JSON.stringify(txObj),
           dest_chain_id: '84532',
           dest_chain_type: 'evm'
         });
 
-        // Stage: Settling & Executing
         setUGFStage('settling');
         addMessage({
           role: 'assistant',
@@ -99,7 +91,6 @@ export const useUGFExecute = () => {
           }
         );
 
-        // Stage: Confirmed on-chain
         setUGFStage('confirmed');
         addMessage({
           role: 'assistant',
@@ -107,27 +98,25 @@ export const useUGFExecute = () => {
           credential: { ...currentCredential, txHash: confirmedTxHash, status: 'active' }
         });
 
-        // Sync with our backend to finalize
         await syncBackendStatus(currentCredential.id, 'active', confirmedTxHash);
         setCredential(null);
 
       } else {
-        // Fallback: Stunning simulation of stages for high-fidelity hackathon demo
-        await new Promise((r) => setTimeout(r, 1200)); // Quote fetch
+        await new Promise((r) => setTimeout(r, 1200)); 
 
         setUGFStage('settling');
         addMessage({
           role: 'assistant',
           content: 'UGF fee quote received! Settling gasless fee of 0.01 Mock USD...'
         });
-        await new Promise((r) => setTimeout(r, 1500)); // Payment settlement
+        await new Promise((r) => setTimeout(r, 1500)); 
 
         setUGFStage('executing');
         addMessage({
           role: 'assistant',
           content: 'Relaying transaction to Base Sepolia ledger...'
         });
-        await new Promise((r) => setTimeout(r, 1500)); // On-chain minting
+        await new Promise((r) => setTimeout(r, 1500)); 
 
         const mockTxHash = `0x${Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
 
@@ -138,7 +127,6 @@ export const useUGFExecute = () => {
           credential: { ...currentCredential, txHash: mockTxHash, status: 'active' }
         });
 
-        // Sync state with backend
         await syncBackendStatus(currentCredential.id, 'active', mockTxHash);
         setCredential(null);
       }

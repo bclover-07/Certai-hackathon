@@ -23,7 +23,6 @@ const getUserRank = async (req, res, next) => {
       return res.status(404).json(error('Leaderboard entry not found'));
     }
 
-    // Find ranks above current points
     const higherEntriesCount = await LeaderboardEntry.countDocuments({
       points: { $gt: entry.points }
     });

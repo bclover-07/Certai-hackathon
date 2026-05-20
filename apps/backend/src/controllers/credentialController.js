@@ -78,7 +78,6 @@ const updateCredentialStatus = async (req, res, next) => {
       credential.issuedAt = new Date();
       await credential.save();
 
-      // Trigger leaderboard point additions
       try {
         await leaderboardService.updatePoints(credential.holderAddress, 'mint', {
           hours: credential.hoursCompleted || 0

@@ -15,7 +15,6 @@ const handleAlchemyWebhook = async (req, res, next) => {
       const txHash = activity.hash;
       const holderAddress = activity.toAddress;
 
-      // Find the pending credential matching this transaction
       const credential = await Credential.findOne({
         txHash: txHash.toLowerCase(),
         status: { $in: ['pending', 'minting'] }
@@ -24,7 +23,6 @@ const handleAlchemyWebhook = async (req, res, next) => {
       if (credential) {
         credential.status = 'active';
 
-        // Parse tokenId if present in log topics or from other event metadata
         if (activity.erc721TokenId) {
           credential.tokenId = parseInt(activity.erc721TokenId, 16).toString();
         }
@@ -32,7 +30,6 @@ const handleAlchemyWebhook = async (req, res, next) => {
         credential.issuedAt = new Date();
         await credential.save();
 
-        // Award points on successful activation
         try {
           await leaderboardService.updatePoints(holderAddress, 'mint', {
             hours: credential.hoursCompleted || 0

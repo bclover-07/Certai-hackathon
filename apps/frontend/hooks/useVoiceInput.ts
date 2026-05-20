@@ -19,8 +19,8 @@ export const useVoiceInput = (onFinalResult?: (result: string) => void): UseVoic
     if (typeof window !== "undefined") {
       const SpeechRecognition =
         (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      
-      if (SpeechRecognition) {
+
+            if (SpeechRecognition) {
         setIsSupported(true);
         const recognition = new SpeechRecognition();
         recognition.continuous = true;

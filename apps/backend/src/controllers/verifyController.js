@@ -21,7 +21,6 @@ const verifyCredential = async (req, res, next) => {
       result = credential.status === 'active';
       holderAddress = credential.holderAddress;
 
-      // Increment verification count in DB
       credential.verificationCount = (credential.verificationCount || 0) + 1;
       await credential.save();
     }
@@ -35,7 +34,6 @@ const verifyCredential = async (req, res, next) => {
       txHash
     });
 
-    // Award verification points to the verifier
     try {
       await leaderboardService.updatePoints(verifierAddress, 'verify');
     } catch (e) {
