@@ -1,7 +1,7 @@
 "use client";
 
 import { useVoiceInput } from "../../hooks/useVoiceInput";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 interface VoiceInputProps {
   onTranscriptChange: (text: string) => void;
@@ -12,6 +12,9 @@ export default function VoiceInput({
   onTranscriptChange,
   onSend,
 }: VoiceInputProps) {
+  const onTranscriptRef = useRef(onTranscriptChange);
+  onTranscriptRef.current = onTranscriptChange;
+
   const {
     isListening,
     transcript,
@@ -19,15 +22,14 @@ export default function VoiceInput({
     stopListening,
     isSupported,
   } = useVoiceInput((finalText) => {
-    onTranscriptChange(finalText);
+    onTranscriptRef.current(finalText);
   });
 
-  // If transcript changes, send it back up
   useEffect(() => {
     if (transcript) {
-      onTranscriptChange(transcript);
+      onTranscriptRef.current(transcript);
     }
-  }, [transcript, onTranscriptChange]);
+  }, [transcript]);
 
   if (!isSupported) {
     return null;
@@ -57,7 +59,6 @@ export default function VoiceInput({
     >
       {isListening ? (
         <>
-          {/* Inner audio waves */}
           <span className="absolute inline-flex h-full w-full animate-ping rounded-xl bg-rose-500/10 opacity-75" />
           <svg
             xmlns="http://www.w3.org/2000/svg"
