@@ -3,8 +3,8 @@ const { getCredentials, getCredential, getHolderCredentials, updateCredentialSta
 const auth = require('../middlewares/auth');
 
 router.get('/', auth, getCredentials);
-router.get('/:id', auth, getCredential);
 router.get('/holder/:address', auth, getHolderCredentials);
+router.get('/:id', auth, getCredential);
 router.put('/:id/status', auth, updateCredentialStatus);
 
 module.exports = router;

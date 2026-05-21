@@ -15,9 +15,10 @@ const verificationLogSchema = new mongoose.Schema(
     },
     holderAddress: {
       type: String,
-      required: true,
+      required: false,
       lowercase: true,
       trim: true,
+      default: "",
     },
     result: {
       type: Boolean,

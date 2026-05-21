@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { BACKEND_URL } from "../../../lib/constants";
 import GlassCard from "../../../components/ui/GlassCard";
 import { usePrivy } from "@privy-io/react-auth";
@@ -22,11 +22,13 @@ export default function LeaderboardPage() {
   const [board, setBoard] = useState<LeaderboardUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { getAccessToken } = usePrivy();
+  const getTokenRef = useRef(getAccessToken);
+  getTokenRef.current = getAccessToken;
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
-        const token = await getAccessToken();
+        const token = await getTokenRef.current();
         const res = await fetch(`${BACKEND_URL}/api/v1/leaderboard`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -43,7 +45,7 @@ export default function LeaderboardPage() {
       }
     };
     fetchLeaderboard();
-  }, [getAccessToken]);
+  }, []);
 
   return (
     <div className="space-y-8 animate-fade-in">

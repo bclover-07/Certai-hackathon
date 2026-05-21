@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { BACKEND_URL } from "../../../lib/constants";
 import { useWalletStore } from "../../../store/walletStore";
 import CredentialCard from "../../../components/dashboard/CredentialCard";
@@ -11,6 +11,8 @@ import { usePrivy } from "@privy-io/react-auth";
 export default function IssuedPage() {
   const { address } = useWalletStore();
   const { getAccessToken } = usePrivy();
+  const getTokenRef = useRef(getAccessToken);
+  getTokenRef.current = getAccessToken;
   const [credentials, setCredentials] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
@@ -19,7 +21,7 @@ export default function IssuedPage() {
     if (!address) return;
     const fetchCredentials = async () => {
       try {
-        const token = await getAccessToken();
+        const token = await getTokenRef.current();
         const res = await fetch(`${BACKEND_URL}/api/v1/credentials/holder/${address}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -36,7 +38,7 @@ export default function IssuedPage() {
       }
     };
     fetchCredentials();
-  }, [address, getAccessToken]);
+  }, [address]);
 
   return (
     <div className="space-y-8 animate-fade-in">

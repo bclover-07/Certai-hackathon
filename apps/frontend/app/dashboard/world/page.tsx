@@ -1,18 +1,33 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, Suspense } from "react";
+import dynamic from "next/dynamic";
 import { useWalletStore } from "../../../store/walletStore";
 import { useWorldStore } from "../../../store/worldStore";
 import { BACKEND_URL } from "../../../lib/constants";
-import CredentialWorld from "../../../components/three/CredentialWorld";
 import GlassCard from "../../../components/ui/GlassCard";
 import Badge from "../../../components/ui/Badge";
 import { usePrivy } from "@privy-io/react-auth";
+
+const CredentialWorld = dynamic(
+  () => import("../../../components/three/CredentialWorld"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-full w-full items-center justify-center text-slate-500 font-semibold uppercase tracking-wider font-mono">
+        <span className="h-2 w-2 rounded-full bg-cyan-400 animate-ping mr-2" />
+        Loading 3D space...
+      </div>
+    ),
+  }
+);
 
 export default function WorldPage() {
   const { address } = useWalletStore();
   const { selectedCredentialId, clearSelection } = useWorldStore();
   const { getAccessToken } = usePrivy();
+  const getTokenRef = useRef(getAccessToken);
+  getTokenRef.current = getAccessToken;
   const [credentials, setCredentials] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -20,7 +35,7 @@ export default function WorldPage() {
     if (!address) return;
     const fetchCredentials = async () => {
       try {
-        const token = await getAccessToken();
+        const token = await getTokenRef.current();
         const res = await fetch(`${BACKEND_URL}/api/v1/credentials/holder/${address}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -37,7 +52,7 @@ export default function WorldPage() {
       }
     };
     fetchCredentials();
-  }, [address, getAccessToken]);
+  }, [address]);
 
   // Find currently inspected card details
   const inspectedCred = credentials.find((c) => c._id === selectedCredentialId);

@@ -12,7 +12,7 @@ const getPrivyClient = () => {
     throw new Error("PRIVY_APP_ID and PRIVY_APP_SECRET must be set");
   }
 
-  privyClient = new PrivyClient({ appId, appSecret });
+  privyClient = new PrivyClient(appId, appSecret);
   return privyClient;
 };
 

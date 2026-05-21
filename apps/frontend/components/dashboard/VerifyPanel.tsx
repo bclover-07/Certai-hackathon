@@ -118,11 +118,13 @@ export default function VerifyPanel() {
               <p className="text-xs text-emerald-300/80 mt-1 font-medium">
                 The SBT contract confirmed this credential is active, unrevoked, and unexpired.
               </p>
-              <div className="mt-3 space-y-1 text-[11px] text-slate-400 font-mono">
-                <p>Holder: {result.holder.substring(0, 18)}...</p>
-                <p>Issued By: {result.issuerName}</p>
-                <p>Course: {result.title}</p>
-              </div>
+              {result.credential && (
+                <div className="mt-3 space-y-1 text-[11px] text-slate-400 font-mono">
+                  <p>Holder: {result.credential.holderAddress?.substring(0, 18)}...</p>
+                  <p>Issued By: {result.credential.issuerName}</p>
+                  <p>Course: {result.credential.title}</p>
+                </div>
+              )}
             </div>
           ) : (
             <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 p-4">

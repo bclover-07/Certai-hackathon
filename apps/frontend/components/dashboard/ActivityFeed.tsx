@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { BACKEND_URL } from "../../lib/constants";
 import { useWalletStore } from "../../store/walletStore";
 import { usePrivy } from "@privy-io/react-auth";
@@ -18,6 +18,8 @@ interface Activity {
 export default function ActivityFeed() {
   const { address } = useWalletStore();
   const { getAccessToken } = usePrivy();
+  const getTokenRef = useRef(getAccessToken);
+  getTokenRef.current = getAccessToken;
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -25,7 +27,7 @@ export default function ActivityFeed() {
     if (!address) return;
     const fetchActivity = async () => {
       try {
-        const token = await getAccessToken();
+        const token = await getTokenRef.current();
         const res = await fetch(`${BACKEND_URL}/api/v1/credentials/holder/${address}`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -45,27 +47,7 @@ export default function ActivityFeed() {
               txHash: cred.txHash,
             }));
 
-            // Let's add a few default/demo endorsements/verifications for standard empty states
-            const demoActivities: Activity[] = [
-              {
-                id: "demo-1",
-                type: "verify" as const,
-                title: "Third-party Audit Run",
-                timestamp: "Just Now",
-                description: "Credential verification requested by Memorial Hospital Compliance.",
-                icon: "🛡️",
-              },
-              {
-                id: "demo-2",
-                type: "endorse" as const,
-                title: "Peer Attestation Received",
-                timestamp: "1 day ago",
-                description: "Dr. Elizabeth Vance endorsed your skill in 'Critical Care Medicine'.",
-                icon: "🤝",
-              },
-            ];
-
-            setActivities([...demoActivities, ...credActivities].slice(0, 5));
+            setActivities(credActivities.slice(0, 5));
           }
         }
       } catch (err) {
@@ -75,7 +57,7 @@ export default function ActivityFeed() {
       }
     };
     fetchActivity();
-  }, [address, getAccessToken]);
+  }, [address]);
 
   if (isLoading) {
     return (

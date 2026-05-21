@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { BACKEND_URL } from "../../../lib/constants";
 import { useWalletStore } from "../../../store/walletStore";
 import GlassCard from "../../../components/ui/GlassCard";
@@ -10,6 +10,8 @@ import { usePrivy } from "@privy-io/react-auth";
 export default function EndorsementsPage() {
   const { address } = useWalletStore();
   const { getAccessToken } = usePrivy();
+  const getTokenRef = useRef(getAccessToken);
+  getTokenRef.current = getAccessToken;
   const [endorsements, setEndorsements] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -24,7 +26,7 @@ export default function EndorsementsPage() {
     if (!address) return;
     const fetchEndorsements = async () => {
       try {
-        const token = await getAccessToken();
+        const token = await getTokenRef.current();
         const resReal = await fetch(`${BACKEND_URL}/api/v1/endorse/received/${address}`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -43,7 +45,7 @@ export default function EndorsementsPage() {
       }
     };
     fetchEndorsements();
-  }, [address, getAccessToken]);
+  }, [address]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

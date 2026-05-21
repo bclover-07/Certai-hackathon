@@ -15,7 +15,7 @@ const verifyCredential = async (req, res, next) => {
     const credential = await Credential.findOne({ tokenId });
 
     let result = false;
-    let holderAddress = null;
+    let holderAddress = "";
 
     if (credential) {
       result = credential.status === 'active';

@@ -1,17 +1,49 @@
 const { Annotation, StateGraph } = require("@langchain/langgraph");
 const { v4: uuidv4 } = require("uuid");
-const inMemorySessions = new Map();
-class MockSession {
-  constructor(data) { Object.assign(this, data, { save: async () => this }); }
-  static async findOne({ sessionId }) { return inMemorySessions.get(sessionId); }
-  static async create(data) { const s = new MockSession(data); inMemorySessions.set(data.sessionId, s); return s; }
-}
-const ClaimSession = MockSession;
+const ClaimSessionModel = require("../models/ClaimSession");
 const geminiService = require("./geminiService");
 const huggingfaceService = require("./huggingfaceService");
 const groqService = require("./groqService");
 const { buildCredentialCalldata } = require("./calldataBuilder");
 const { buildMetadata } = require("../utils/credentialMetadata");
+
+const inMemorySessions = new Map();
+
+async function safeSessionFindOne(sessionId) {
+  try {
+    const doc = await ClaimSessionModel.findOne({ sessionId });
+    return doc;
+  } catch {
+    return inMemorySessions.get(sessionId) || null;
+  }
+}
+
+async function safeSessionCreate(data) {
+  try {
+    const doc = await ClaimSessionModel.create(data);
+    return doc;
+  } catch {
+    const fallback = {
+      ...data,
+      messages: data.messages || [],
+      save: async function () { inMemorySessions.set(data.sessionId, this); return this; }
+    };
+    inMemorySessions.set(data.sessionId, fallback);
+    return fallback;
+  }
+}
+
+async function safeSessionSave(session) {
+  try {
+    if (typeof session.save === "function") {
+      await session.save();
+    }
+  } catch {
+    if (session.sessionId) {
+      inMemorySessions.set(session.sessionId, session);
+    }
+  }
+}
 
 const CREDENTIAL_CATEGORIES = [
   "medical_training",
@@ -61,10 +93,10 @@ async function loadMemory(state) {
       sessionId = uuidv4();
     }
 
-    let session = await ClaimSession.findOne({ sessionId });
+    let session = await safeSessionFindOne(sessionId);
 
     if (!session) {
-      session = await ClaimSession.create({
+      session = await safeSessionCreate({
         userAddress: state.walletAddress,
         sessionId,
         messages: [],
@@ -72,12 +104,14 @@ async function loadMemory(state) {
       });
     }
 
+    if (!session.messages) session.messages = [];
+
     session.messages.push({
       role: "user",
       content: state.claimText,
       timestamp: new Date(),
     });
-    await session.save();
+    await safeSessionSave(session);
 
     const history = session.messages.map((m) => ({
       role: m.role,
@@ -97,8 +131,8 @@ async function loadMemory(state) {
     steps[0].status = "error";
     steps[0].error = err.message;
     return {
+      sessionId: state.sessionId || uuidv4(),
       steps,
-      error: `loadMemory failed: ${err.message}`,
     };
   }
 }
@@ -128,11 +162,11 @@ async function classifyClaim(state) {
     const text = state.claimText.toLowerCase();
     let category = "professional_certification";
 
-    if (text.includes("medical") || text.includes("clinical") || text.includes("patient")) {
+    if (text.includes("medical") || text.includes("clinical") || text.includes("patient") || text.includes("hipaa") || text.includes("acls") || text.includes("bls") || text.includes("cpr")) {
       category = "medical_training";
-    } else if (text.includes("degree") || text.includes("university") || text.includes("bachelor") || text.includes("master") || text.includes("phd")) {
+    } else if (text.includes("degree") || text.includes("university") || text.includes("bachelor") || text.includes("master") || text.includes("phd") || text.includes("diploma")) {
       category = "academic_credential";
-    } else if (text.includes("course") || text.includes("training") || text.includes("workshop")) {
+    } else if (text.includes("course") || text.includes("training") || text.includes("workshop") || text.includes("seminar") || text.includes("hours")) {
       category = "continuing_education";
     } else if (text.includes("hello") || text.includes("hi ") || text.includes("what") || text.includes("how are")) {
       category = "not_a_credential";
@@ -146,6 +180,83 @@ async function classifyClaim(state) {
       steps,
     };
   }
+}
+
+function localExtractCredential(claimText, category) {
+  const text = claimText.toLowerCase();
+
+  const hoursMatch = claimText.match(/(\d+)[\s-]*(hours?|hrs?|hour)/i);
+  const hoursCompleted = hoursMatch ? parseInt(hoursMatch[1]) : 0;
+
+  const certKeywords = [
+    { pattern: /acls/i, title: "Advanced Cardiac Life Support (ACLS)", skills: ["ACLS", "Cardiac Care", "Emergency Medicine"] },
+    { pattern: /bls/i, title: "Basic Life Support (BLS)", skills: ["BLS", "CPR", "First Aid"] },
+    { pattern: /hipaa/i, title: "HIPAA Compliance Training", skills: ["HIPAA", "Healthcare Compliance", "Patient Privacy"] },
+    { pattern: /cpr/i, title: "CPR Certification", skills: ["CPR", "First Aid", "Emergency Response"] },
+    { pattern: /pals/i, title: "Pediatric Advanced Life Support (PALS)", skills: ["PALS", "Pediatric Care", "Emergency Medicine"] },
+    { pattern: /first\s*aid/i, title: "First Aid Certification", skills: ["First Aid", "Emergency Care"] },
+    { pattern: /aws/i, title: "AWS Cloud Certification", skills: ["AWS", "Cloud Computing", "DevOps"] },
+    { pattern: /python/i, title: "Python Programming Certification", skills: ["Python", "Programming", "Software Development"] },
+    { pattern: /javascript|js /i, title: "JavaScript Development Certification", skills: ["JavaScript", "Web Development"] },
+    { pattern: /react/i, title: "React Development Certification", skills: ["React", "Frontend Development", "JavaScript"] },
+    { pattern: /data\s*science/i, title: "Data Science Certification", skills: ["Data Science", "Machine Learning", "Analytics"] },
+    { pattern: /machine\s*learning|ml /i, title: "Machine Learning Certification", skills: ["Machine Learning", "AI", "Data Science"] },
+    { pattern: /project\s*management|pmp/i, title: "Project Management Professional (PMP)", skills: ["Project Management", "Leadership", "Agile"] },
+    { pattern: /scrum/i, title: "Scrum Master Certification", skills: ["Scrum", "Agile", "Project Management"] },
+    { pattern: /cyber\s*security/i, title: "Cybersecurity Certification", skills: ["Cybersecurity", "Information Security", "Network Security"] },
+    { pattern: /compliance/i, title: "Compliance Training Certification", skills: ["Compliance", "Regulatory Standards", "Risk Management"] },
+    { pattern: /pediatric/i, title: "Pediatric Fellowship", skills: ["Pediatrics", "Child Healthcare"] },
+    { pattern: /medical\s*degree/i, title: "Medical Degree", skills: ["Medicine", "Clinical Practice", "Patient Care"] },
+  ];
+
+  let title = "";
+  let skills = [];
+
+  for (const cert of certKeywords) {
+    if (cert.pattern.test(claimText)) {
+      title = cert.title;
+      skills = cert.skills;
+      break;
+    }
+  }
+
+  if (!title) {
+    const words = claimText.replace(/[^\w\s]/g, "").split(/\s+/).filter(w => w.length > 3);
+    const stopWords = ["completed", "finished", "earned", "received", "passed", "took", "attended", "hours", "hour", "training", "certification", "certificate", "from", "with", "that", "this", "have", "been", "last", "week", "month", "year"];
+    const meaningful = words.filter(w => !stopWords.includes(w.toLowerCase()));
+    title = meaningful.slice(0, 4).join(" ") || "Professional Credential";
+    title = title.charAt(0).toUpperCase() + title.slice(1);
+    skills = meaningful.slice(0, 3).map(s => s.charAt(0).toUpperCase() + s.slice(1));
+  }
+
+  let issuerName = "Self-Reported";
+  const issuerPatterns = [
+    /(?:at|from|by|through)\s+(?:the\s+)?([A-Z][A-Za-z\s&]+(?:Hospital|University|College|Institute|Center|Academy|School|Foundation|Association|Organization|Corp|Inc|LLC|System|Health))/,
+    /(?:at|from|by|through)\s+(?:the\s+)?([A-Z][A-Za-z\s&]{2,30})/,
+  ];
+
+  for (const pat of issuerPatterns) {
+    const match = claimText.match(pat);
+    if (match && match[1]) {
+      issuerName = match[1].trim();
+      break;
+    }
+  }
+
+  const credentialType = VALID_CREDENTIAL_TYPES.includes(category)
+    ? category
+    : "professional_certification";
+
+  return {
+    title,
+    issuerName,
+    credentialType,
+    hoursCompleted,
+    skills,
+    description: `${title} issued by ${issuerName}`,
+    confidence: 0.4,
+    expiryYears: credentialType === "medical_training" ? 2 : null,
+  };
 }
 
 async function extractCredential(state) {
@@ -178,14 +289,11 @@ async function extractCredential(state) {
       steps[0].status = "completed-fallback";
       steps[0].model = "groq";
     } catch (groqErr) {
-      steps[0].status = "error";
       steps[0].groqError = groqErr.message;
-      return {
-        rawCredential: null,
-        error: `Both Gemini and Groq extraction failed. Gemini: ${geminiErr.message}. Groq: ${groqErr.message}`,
-        reply: "I had trouble processing your credential claim. Please try again or rephrase your claim with more details.",
-        steps,
-      };
+      extracted = localExtractCredential(state.claimText, state.claimCategory);
+      modelUsed = "local-extraction";
+      steps[0].status = "completed-local";
+      steps[0].model = "local";
     }
   }
 
@@ -332,8 +440,9 @@ async function composeReply(state) {
   }
 
   try {
-    const session = await ClaimSession.findOne({ sessionId: state.sessionId });
+    const session = await safeSessionFindOne(state.sessionId);
     if (session) {
+      if (!session.messages) session.messages = [];
       session.messages.push({
         role: "assistant",
         content: reply,
@@ -349,7 +458,7 @@ async function composeReply(state) {
         };
       }
 
-      await session.save();
+      await safeSessionSave(session);
     }
   } catch (err) {
     steps[0].sessionSaveError = err.message;
@@ -440,7 +549,7 @@ const explainCredential = async (type, title, hours) => {
       title,
       hours,
     };
-  } catch (err) {
+  } catch {
     return {
       explanation: `The "${title}" is a ${type.replace(/_/g, " ")} credential representing ${hours} hours of professional development. This credential validates specialized knowledge and skills in the field.`,
       type,

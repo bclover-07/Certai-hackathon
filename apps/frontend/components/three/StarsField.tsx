@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Points, PointMaterial } from "@react-three/drei";
 // Generate random points in a sphere
@@ -23,8 +23,7 @@ const generateInSphere = (numPoints: number, radius: number): Float32Array => {
 export default function StarsField(props: any) {
   const ref = useRef<any>();
   
-  // Create 500 points inside a sphere of radius 1.5
-  const sphere = generateInSphere(500, 1.5);
+  const sphere = useMemo(() => generateInSphere(500, 1.5), []);
 
   useFrame((state, delta) => {
     if (ref.current) {

@@ -72,7 +72,7 @@ const updatePoints = async (walletAddress, action, amount = 1) => {
   );
 
   const leaderboardInc = { points: totalPoints };
-  leaderboardInc[`breakdown.${breakdownField}`] = amount;
+  leaderboardInc[`breakdown.${breakdownField}`] = actualAmount;
 
   const user = await User.findOne({ walletAddress: addr }).lean();
 

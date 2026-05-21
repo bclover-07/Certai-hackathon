@@ -2,12 +2,28 @@ const mongoose = require("mongoose");
 require("dns").setServers(["8.8.8.8", "8.8.4.4"]);
 let mongoServer = null;
 
+const ensureDbName = (uri) => {
+  if (!uri) return uri;
+  try {
+    const url = new URL(uri);
+    if (!url.pathname || url.pathname === "/") {
+      url.pathname = "/certai";
+      return url.toString();
+    }
+    return uri;
+  } catch {
+    return uri;
+  }
+};
+
 const connectDB = async () => {
   let uri = process.env.MONGODB_URI;
   if (!uri) {
     console.warn("[MongoDB] MONGODB_URI not set. Falling back to in-memory server for development.");
-    uri = "mongodb://localhost:27017";
+    uri = "mongodb://localhost:27017/certai";
   }
+
+  uri = ensureDbName(uri);
 
   mongoose.connection.on("connected", () => {
     console.log("[MongoDB] Connected successfully");
@@ -58,4 +74,3 @@ const connectDB = async () => {
 };
 
 module.exports = connectDB;
-

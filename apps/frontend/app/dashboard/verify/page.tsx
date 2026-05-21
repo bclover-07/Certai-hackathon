@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { BACKEND_URL } from "../../../lib/constants";
 import { useWalletStore } from "../../../store/walletStore";
 import VerifyPanel from "../../../components/dashboard/VerifyPanel";
@@ -9,6 +9,8 @@ import { usePrivy } from "@privy-io/react-auth";
 export default function VerifyPage() {
   const { address } = useWalletStore();
   const { getAccessToken } = usePrivy();
+  const getTokenRef = useRef(getAccessToken);
+  getTokenRef.current = getAccessToken;
   const [history, setHistory] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -16,7 +18,7 @@ export default function VerifyPage() {
     if (!address) return;
     const fetchHistory = async () => {
       try {
-        const token = await getAccessToken();
+        const token = await getTokenRef.current();
         const res = await fetch(`${BACKEND_URL}/api/v1/verify/history/${address}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -33,7 +35,7 @@ export default function VerifyPage() {
       }
     };
     fetchHistory();
-  }, [address, getAccessToken]);
+  }, [address]);
 
   return (
     <div className="space-y-8 animate-fade-in">

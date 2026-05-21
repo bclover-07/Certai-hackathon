@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useWalletStore } from "../store/walletStore";
 import { usePrivy } from "@privy-io/react-auth";
 import { BACKEND_URL } from "../lib/constants";
@@ -6,19 +6,18 @@ import { BACKEND_URL } from "../lib/constants";
 export const useWalletBalance = () => {
   const { address, setBalance } = useWalletStore();
   const { getAccessToken } = usePrivy();
+  const getTokenRef = useRef(getAccessToken);
+  getTokenRef.current = getAccessToken;
 
   useEffect(() => {
     if (!address) return;
 
     const fetchBalanceAndProfile = async () => {
       try {
-        const token = await getAccessToken();
+        const token = await getTokenRef.current();
         const response = await fetch(`${BACKEND_URL}/api/v1/users/${address}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
-
         if (response.ok) {
           const data = await response.json();
           if (data.success && data.data) {
@@ -33,8 +32,7 @@ export const useWalletBalance = () => {
     };
 
     fetchBalanceAndProfile();
-    const interval = setInterval(fetchBalanceAndProfile, 10000); 
-
+    const interval = setInterval(fetchBalanceAndProfile, 30000);
     return () => clearInterval(interval);
-  }, [address, setBalance, getAccessToken]);
+  }, [address, setBalance]);
 };

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { usePrivy } from "@privy-io/react-auth";
 import { BACKEND_URL } from "../../../lib/constants";
 import { useWalletStore } from "../../../store/walletStore";
@@ -9,6 +9,8 @@ import NeonButton from "../../../components/ui/NeonButton";
 
 export default function ProfilePage() {
   const { getAccessToken } = usePrivy();
+  const getTokenRef = useRef(getAccessToken);
+  getTokenRef.current = getAccessToken;
   const { address } = useWalletStore();
 
   const [displayName, setDisplayName] = useState("");
@@ -24,7 +26,7 @@ export default function ProfilePage() {
     if (!address) return;
     const fetchProfile = async () => {
       try {
-        const token = await getAccessToken();
+        const token = await getTokenRef.current();
         const res = await fetch(`${BACKEND_URL}/api/v1/users/${address}`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -48,7 +50,7 @@ export default function ProfilePage() {
       }
     };
     fetchProfile();
-  }, [address, getAccessToken]);
+  }, [address]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
