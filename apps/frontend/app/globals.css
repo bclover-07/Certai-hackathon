@@ -289,3 +289,27 @@ button:active, a:active, [role="button"]:active {
 .sidebar-nav-item:active {
   transform: translateX(3px) scale(0.98);
 }
+
+/* Custom Landing Page Keyframes & Helpers */
+@keyframes dash {
+  to {
+    stroke-dashoffset: -100;
+  }
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+.card:hover .card-inner {
+  transform: rotateY(180deg);
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
