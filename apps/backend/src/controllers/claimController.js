@@ -15,12 +15,18 @@ const parseClaim = async (req, res, next) => {
       return res.status(400).json(error('Wallet address required'));
     }
 
-    const result = await aiService.runCredentialAgent({
-      claimText: claimText.trim(),
-      walletAddress,
-      sessionId,
-      userRole: role
-    });
+    let result;
+    try {
+      result = await aiService.runCredentialAgent({
+        claimText: claimText.trim(),
+        walletAddress,
+        sessionId,
+        userRole: role
+      });
+    } catch (agentErr) {
+      console.error('Error executing runCredentialAgent:', agentErr);
+      return res.status(500).json(error('Failed to parse your claim. The AI agent timed out or returned an error: ' + agentErr.message));
+    }
 
     let credentialRecord = null;
     if (result.credential && result.credential.credentialType !== 'invalid') {

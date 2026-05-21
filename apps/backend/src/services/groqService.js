@@ -14,19 +14,29 @@ Respond ONLY with valid JSON:
   "expiryYears": number or null
 }`;
 
+const withTimeout = (promise, ms = 5000, errorMessage = "Groq extraction timed out") => {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(errorMessage)), ms))
+  ]);
+};
+
 const extract = async (claimText) => {
   const groq = getGroqClient();
 
-  const completion = await groq.chat.completions.create({
-    model: "llama-3.1-8b-instant",
-    messages: [
-      { role: "system", content: EXTRACTION_PROMPT },
-      { role: "user", content: claimText },
-    ],
-    temperature: 0.2,
-    max_tokens: 1024,
-    response_format: { type: "json_object" },
-  });
+  const completion = await withTimeout(
+    groq.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+      messages: [
+        { role: "system", content: EXTRACTION_PROMPT },
+        { role: "user", content: claimText },
+      ],
+      temperature: 0.2,
+      max_tokens: 1024,
+      response_format: { type: "json_object" },
+    }),
+    5000
+  );
 
   const content = completion.choices[0]?.message?.content;
   if (!content) {

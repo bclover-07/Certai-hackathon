@@ -1,15 +1,25 @@
 const { getHfClient } = require("../config/huggingface");
 
+const withTimeout = (promise, ms = 5000, errorMessage = "HuggingFace classification timed out") => {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(errorMessage)), ms))
+  ]);
+};
+
 const classify = async (text, categories) => {
   const hf = getHfClient();
 
-  const result = await hf.zeroShotClassification({
-    model: "facebook/bart-large-mnli",
-    inputs: text,
-    parameters: {
-      candidate_labels: categories,
-    },
-  });
+  const result = await withTimeout(
+    hf.zeroShotClassification({
+      model: "facebook/bart-large-mnli",
+      inputs: text,
+      parameters: {
+        candidate_labels: categories,
+      },
+    }),
+    5000
+  );
 
   const output = Array.isArray(result) ? result[0] : result;
 

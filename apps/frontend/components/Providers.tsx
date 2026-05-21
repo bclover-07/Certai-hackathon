@@ -3,8 +3,6 @@
 import { ReactNode, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PrivyProvider } from "@privy-io/react-auth";
-import { WagmiProvider } from "@privy-io/wagmi";
-import { wagmiConfig } from "../lib/wagmi";
 import { baseSepolia } from "viem/chains";
 
 interface ProvidersProps {
@@ -44,9 +42,7 @@ export default function Providers({ children }: ProvidersProps) {
       }}
     >
       <QueryClientProvider client={queryClient}>
-        <WagmiProvider config={wagmiConfig}>
-          {children}
-        </WagmiProvider>
+        {children}
       </QueryClientProvider>
     </PrivyProvider>
   );

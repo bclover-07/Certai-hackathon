@@ -99,7 +99,7 @@ export const useUGFExecute = () => {
         });
 
         await syncBackendStatus(currentCredential.id, 'active', confirmedTxHash);
-        setCredential(null);
+        setCredential({ ...currentCredential, txHash: confirmedTxHash, status: 'active' });
 
       } else {
         await new Promise((r) => setTimeout(r, 1200)); 
@@ -128,7 +128,7 @@ export const useUGFExecute = () => {
         });
 
         await syncBackendStatus(currentCredential.id, 'active', mockTxHash);
-        setCredential(null);
+        setCredential({ ...currentCredential, txHash: mockTxHash, status: 'active' });
       }
 
     } catch (err: any) {

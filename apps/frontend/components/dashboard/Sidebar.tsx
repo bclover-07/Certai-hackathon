@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
+import NavLink from "../ui/NavLink";
 import { usePrivy } from "@privy-io/react-auth";
 import { NAV_ITEMS } from "../../lib/constants";
 
@@ -11,9 +13,34 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
+  const [optimisticPath, setOptimisticPath] = useState("");
   const pathname = usePathname();
   const router = useRouter();
   const { logout } = usePrivy();
+
+  const activePath = optimisticPath || pathname;
+
+  // Clear optimistic state when real navigation completes
+  useEffect(() => {
+    setOptimisticPath("");
+  }, [pathname]);
+
+  // Prefetch all routes when sidebar mounts
+  useEffect(() => {
+    const ROUTES = [
+      "/dashboard",
+      "/dashboard/claim",
+      "/dashboard/world",
+      "/dashboard/verify",
+      "/dashboard/issued",
+      "/dashboard/endorsements",
+      "/dashboard/leaderboard",
+      "/dashboard/profile",
+    ];
+    ROUTES.forEach((route) => {
+      router.prefetch(route);
+    });
+  }, [router]);
 
   const handleLogout = async () => {
     await logout();
@@ -60,13 +87,16 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* Navigation list */}
         <nav className="flex-1 space-y-1.5 px-4 py-6 overflow-y-auto">
           {NAV_ITEMS.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive = activePath === item.href;
             return (
-              <Link
+              <NavLink
                 key={item.href}
                 href={item.href}
-                onClick={onClose}
-                className={`group flex items-center gap-3.5 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 border border-transparent ${
+                onClick={() => {
+                  setOptimisticPath(item.href);
+                  onClose();
+                }}
+                className={`group sidebar-nav-item flex items-center gap-3.5 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 border border-transparent ${
                   isActive
                     ? "bg-cyan-500/10 border-cyan-500/20 text-cyan-200 shadow-[0_0_15px_rgba(6,182,212,0.06)]"
                     : "text-slate-400 hover:bg-slate-900/50 hover:text-white"
@@ -79,7 +109,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 {isActive && (
                   <span className="ml-auto h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#22d3ee]" />
                 )}
-              </Link>
+              </NavLink>
             );
           })}
         </nav>
@@ -98,3 +128,4 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     </>
   );
 }
+

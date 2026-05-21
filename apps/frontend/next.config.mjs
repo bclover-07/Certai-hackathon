@@ -19,6 +19,20 @@ const nextConfig = {
 
     return config;
   },
+
+  // Compile faster in dev
+  swcMinify: true,
+
+  // Remove console.log in production
+  compiler: {
+    removeConsole: process.env.NODE_ENV === "production",
+  },
+
+  // Faster image loading
+  images: {
+    formats: ["image/avif", "image/webp"],
+  },
+
   experimental: {
     optimizePackageImports: [
       "@privy-io/react-auth",
@@ -27,8 +41,11 @@ const nextConfig = {
       "three",
       "zustand",
       "viem",
+      "framer-motion",
+      "lucide-react",
     ],
   },
 };
 
 export default nextConfig;
+

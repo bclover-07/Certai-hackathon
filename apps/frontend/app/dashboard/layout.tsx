@@ -1,10 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";
 import Sidebar from "../../components/dashboard/Sidebar";
 import TopBar from "../../components/dashboard/TopBar";
+import NavigationProgress from "../../components/ui/NavigationProgress";
+import PageTransition from "../../components/ui/PageTransition";
+import PageSkeleton from "../../components/ui/PageSkeleton";
 import { useWalletBalance } from "../../hooks/useWalletBalance";
 
 export default function DashboardLayout({
@@ -43,6 +46,7 @@ export default function DashboardLayout({
 
   return (
     <div className="flex h-screen bg-[#070a24] overflow-hidden">
+      <NavigationProgress />
       <Sidebar
         isOpen={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
@@ -52,10 +56,13 @@ export default function DashboardLayout({
         <TopBar onOpenMobileMenu={() => setMobileMenuOpen(true)} />
         <main className="flex-1 overflow-y-auto p-6 md:p-8 scrollbar-thin">
           <div className="mx-auto max-w-7xl w-full">
-            {children}
+            <Suspense fallback={<PageSkeleton />}>
+              <PageTransition>{children}</PageTransition>
+            </Suspense>
           </div>
         </main>
       </div>
     </div>
   );
 }
+

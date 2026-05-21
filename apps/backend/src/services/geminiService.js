@@ -25,6 +25,13 @@ Rules:
 - confidence should reflect how well-structured and clear the claim is
 - Do NOT hallucinate information not present or inferable from the claim`;
 
+const withTimeout = (promise, ms = 5000, errorMessage = "Gemini extraction timed out") => {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(errorMessage)), ms))
+  ]);
+};
+
 const extract = async (systemPrompt, userInput) => {
   const model = getGeminiModel();
 
@@ -33,7 +40,7 @@ const extract = async (systemPrompt, userInput) => {
     new HumanMessage(userInput),
   ];
 
-  const response = await model.invoke(messages);
+  const response = await withTimeout(model.invoke(messages), 5000);
   const content = response.content;
 
   let parsed;
