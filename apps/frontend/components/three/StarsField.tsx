@@ -3,14 +3,28 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Points, PointMaterial } from "@react-three/drei";
-// @ts-expect-error
-import * as random from "maath/random/dist/maath-random.esm";
+// Generate random points in a sphere
+const generateInSphere = (numPoints: number, radius: number): Float32Array => {
+  const points = new Float32Array(numPoints * 3);
+  for (let i = 0; i < numPoints; i++) {
+    const u = Math.random();
+    const v = Math.random();
+    const theta = u * 2.0 * Math.PI;
+    const phi = Math.acos(2.0 * v - 1.0);
+    const r = Math.cbrt(Math.random()) * radius;
+    
+    points[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+    points[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+    points[i * 3 + 2] = r * Math.cos(phi);
+  }
+  return points;
+};
 
 export default function StarsField(props: any) {
   const ref = useRef<any>();
   
-  // Create 1200 points inside a sphere of radius 1.2
-  const sphere = random.inSphere(new Float32Array(1500), { radius: 1.5 }) as Float32Array;
+  // Create 500 points inside a sphere of radius 1.5
+  const sphere = generateInSphere(500, 1.5);
 
   useFrame((state, delta) => {
     if (ref.current) {

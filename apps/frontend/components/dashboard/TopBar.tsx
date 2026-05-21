@@ -43,7 +43,7 @@ export default function TopBar({ onOpenMobileMenu }: TopBarProps) {
       }
     };
     fetchProfile();
-  }, [address]);
+  }, [address, getAccessToken]);
 
   // Truncate address for display: 0x1234...5678
   const truncateAddress = (addr: string) => {

@@ -21,6 +21,14 @@ const connectDB = async () => {
     console.warn("[MongoDB] Disconnected");
   });
 
+  const tryConnect = async (connectionUri) => {
+    await mongoose.connect(connectionUri, {
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+    });
+  };
+
   try {
     if (uri.includes("localhost") || uri.includes("127.0.0.1")) {
       const { MongoMemoryServer } = require("mongodb-memory-server");
@@ -28,16 +36,26 @@ const connectDB = async () => {
       uri = mongoServer.getUri();
       console.log(`[MongoDB] Using in-memory database: ${uri}`);
     }
-
-    await mongoose.connect(uri, {
-      maxPoolSize: 10,
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-    });
+    await tryConnect(uri);
   } catch (err) {
     console.error("[MongoDB] Initial connection failed:", err.message);
-    process.exit(1);
+    if (!uri.includes("localhost") && !uri.includes("127.0.0.1")) {
+      console.log("[MongoDB] Attempting fallback to in-memory database...");
+      try {
+        const { MongoMemoryServer } = require("mongodb-memory-server");
+        mongoServer = await MongoMemoryServer.create();
+        const fallbackUri = mongoServer.getUri();
+        console.log(`[MongoDB] Using fallback in-memory database: ${fallbackUri}`);
+        await tryConnect(fallbackUri);
+      } catch (fallbackErr) {
+        console.error("[MongoDB] Fallback in-memory database also failed:", fallbackErr.message);
+        process.exit(1);
+      }
+    } else {
+      process.exit(1);
+    }
   }
 };
 
 module.exports = connectDB;
+
