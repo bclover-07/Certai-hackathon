@@ -6,10 +6,11 @@ import { BACKEND_URL } from '../lib/constants';
 
 let UGFClient: any = null;
 try {
-  const UGFModule = require('@tychilabs/ugf-testnet-js');
+  const req = eval('require');
+  const UGFModule = req('@tychilabs/ugf-testnet-js');
   UGFClient = UGFModule.UGFClient;
 } catch (e) {
-  console.warn('UGF testnet JS not loaded, running in simulation mode');
+  // UGF testnet JS not loaded, running in simulation mode
 }
 
 export const useUGFExecute = () => {

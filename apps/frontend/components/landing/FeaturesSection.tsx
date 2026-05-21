@@ -72,13 +72,6 @@ const PipelineDiagram = () => {
         <circle cx="520" cy="40" r="14" fill="#030508" stroke="#00d4ff" strokeWidth="2" />
         <text x="520" y="44" fill="#00d4ff" fontSize="9" fontWeight="bold" textAnchor="middle" fontFamily="monospace">CMP</text>
       </svg>
-      <style jsx global>{`
-        @keyframes dash {
-          to {
-            stroke-dashoffset: -100;
-          }
-        }
-      `}</style>
     </div>
   );
 };

@@ -25,22 +25,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     setOptimisticPath("");
   }, [pathname]);
 
-  // Prefetch all routes when sidebar mounts
-  useEffect(() => {
-    const ROUTES = [
-      "/dashboard",
-      "/dashboard/claim",
-      "/dashboard/world",
-      "/dashboard/verify",
-      "/dashboard/issued",
-      "/dashboard/endorsements",
-      "/dashboard/leaderboard",
-      "/dashboard/profile",
-    ];
-    ROUTES.forEach((route) => {
-      router.prefetch(route);
-    });
-  }, [router]);
 
   const handleLogout = async () => {
     await logout();

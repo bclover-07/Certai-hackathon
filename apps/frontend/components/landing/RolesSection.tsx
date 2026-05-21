@@ -95,17 +95,6 @@ const FlipCard = ({ icon, title, tagline, bullets, accentColor, glowColor }: Fli
           </ul>
         </div>
       </div>
-      <style jsx global>{`
-        .card:hover .card-inner {
-          transform: rotateY(180deg);
-        }
-        .preserve-3d {
-          transform-style: preserve-3d;
-        }
-        .backface-hidden {
-          backface-visibility: hidden;
-        }
-      `}</style>
     </motion.div>
   );
 };
