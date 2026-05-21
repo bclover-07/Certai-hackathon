@@ -106,6 +106,88 @@ npm run dev
 
 ---
 
+## 🧪 Live Feature Walkthrough & Test Guide
+
+This guide provides copy-pasteable dummy data, input field breakdowns, and expected output results to help you thoroughly test every single feature of the CERTAI website.
+
+---
+
+### 1. 🧠 AI Claim Processing & Gasless SBT Minting (`/dashboard/claim`)
+* **Purpose**: Allows healthcare professionals and trainees to enter natural language credential statements. The LangGraph AI Core processes, extracts, and translates them into structured on-chain metadata before executing a gasless mint.
+* **Input Fields & Interactive Testing**:
+  * **Claim Statement (Textarea)**: Enter a natural language sentence detailing a course, residency, or certification completion.
+* **Copy-Pasteable Dummy Test Data**:
+  | Test Case | Copy-Paste Input Claim |
+  | :--- | :--- |
+  | **HIPAA Certification** | `I completed a 16-hour HIPAA Compliance Certification at Massachusetts General Hospital last week` |
+  | **ACLS Training** | `I finished a 12-hour Advanced Cardiac Life Support (ACLS) course at Harvard Medical School` |
+  | **Pediatric Cardiology** | `I completed a 45-hour Residency Program in Pediatric Cardiology at Boston Childrens Hospital` |
+* **Expected Output**:
+  * **AI Parsing Panel**: Renders dynamic structured attributes (e.g. *Title*, *Issuer*, *Type*, *Credit Hours*, and *Extracted Skills*).
+  * **AI Core Diagnostics Badge**: Shows the AI model used (e.g. `groq-llama-3.1-8b` / `Gemini 2.5 Flash`) and the parsing confidence score (e.g. `95%`).
+  * **Action Button**: A **"Mint SoulBound NFT (Gasless)"** button lights up. Clicking it triggers the Privy transaction signing modal and relays the gasless UGF mint, yielding a live Base Sepolia Transaction Hash (`0x...`).
+
+---
+
+### 2. 🔍 On-Chain Credential Verification (`/dashboard/verify`)
+* **Purpose**: Enables external institutions, medical boards, or hospitals to audit, verify, and confirm a professional's SoulBound credential directly against the Base Sepolia ledger.
+* **Input Fields & Interactive Testing**:
+  * **Holder Address (Input)**: The Ethereum wallet address of the credential holder.
+  * **Credential Token ID (Input)**: The unique numeric Token ID assigned during the SBT mint.
+  * **Purpose/Reason (Dropdown)**: The purpose of running the audit (e.g., `clinical_privileges`, `employment_check`, `academic_admission`).
+* **Copy-Pasteable Dummy Test Data**:
+  * **Holder Address**: `0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266`
+  * **Credential Token ID**: `9999` (or the ID generated from your minted claim above)
+  * **Verification Purpose**: Select `clinical_privileges` (Clinical Privileges Audit)
+* **Expected Output**:
+  * **Audit Report Card**: A glowing glassmorphic success modal appears displaying a green **"✅ Valid Credential"** badge.
+  * **Ledger Audit Log**: Displays the updated global **Verification Count** (e.g. incremented from `0` to `1`).
+  * **Verification Timeline**: Adds an entry to the user's permanent verification history, linking directly to the audit log in the database.
+
+---
+
+### 3. 🤝 Peer Skill Endorsements (`/dashboard/endorsements`)
+* **Purpose**: Allows peers and colleagues to endorse specific skills on another professional's profile, generating peer trust points.
+* **Input Fields & Interactive Testing**:
+  * **Recipient Wallet Address (Input)**: The wallet address of the colleague you want to endorse.
+  * **Skill Name (Input)**: The precise skill or specialty to recommend.
+  * **Comment/Recommendation (Textarea)**: Short professional testimonial.
+* **Copy-Pasteable Dummy Test Data**:
+  * **Recipient Address**: `0x70997970c51812dc3a010c7d01b50e0d17dc79c8`
+  * **Skill Name**: `HIPAA Compliance` or `Anesthesiology`
+  * **Testimonial Comment**: `Demonstrated exceptional adherence to HIPAA guidelines during complex surgical rotations and hospital audits.`
+* **Expected Output**:
+  * **Endorsement Card**: A success badge confirms the peer endorsement is locked.
+  * **Profile Update**: The recipient's profile gains a **"Skills Endorsed"** pill highlighting the skill, increase in trust index, and points.
+
+---
+
+### 4. 🏆 Ranks & Point Leaderboard (`/dashboard/leaderboard`)
+* **Purpose**: Displays the real-time global leaderboard and ranking of medical learners and institutions on the CERTAI network.
+* **Input Fields**: None (automatic, real-time aggregation from backend MongoDB `/api/v1/leaderboard`).
+* **Expected Output**:
+  * **Leaderboard Grid**: A list of ranked earners, displaying **Rank Number**, **Wallet Address/Display Name**, **Organization**, and **Total Point Score**.
+  * **Point Breakdown Stats**: Clicking any leaderboard row expands a card showing:
+    * `Credentials Minted`
+    * `Hours Logged`
+    * `Endorsements Received`
+    * `Verifications Audited`
+
+---
+
+### 5. 👤 Professional Profile & Identity Vault (`/dashboard/profile`)
+* **Purpose**: Allows users to customize their professional digital metadata, bio, and specialty roles.
+* **Input Fields & Interactive Testing**:
+  * **Display Name**: Dr. Jane Doe
+  * **Bio**: Pediatric Cardiologist at MGH with 6+ years of clinical experience.
+  * **Organization**: Massachusetts General Hospital
+  * **Role (Dropdown)**: `learner` (Student/Trainee) or `verifier` (Institution Representative)
+  * **Specialty**: Pediatric Cardiology
+* **Expected Output**:
+  * **Identity Card**: Saves the metadata securely. Renders a premium, glowing professional identity badge summarizing your active SBTs, UGF point balances, and certified medical hours.
+
+---
+
 ## 📜 Smart Contract Addresses (Base Sepolia)
 * **CertNFT (SBT)**: `0x9482C407D87bEdbBE379E780E23b7B99f8eA0E70` (Example placeholder)
 * **CertVerifier**: `0xD9145ECEc182ec1A0D8408f6B6B0E0207a9b0A1d`
