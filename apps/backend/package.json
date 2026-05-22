@@ -5,7 +5,8 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "dev": "nodemon src/server.js",
+    "postinstall": "node scripts/patch-privy.js"
   },
   "dependencies": {
     "@huggingface/inference": "^3.13.2",
@@ -27,7 +28,10 @@
     "uuid": "^11.1.0"
   },
   "overrides": {
-    "jose": "^4.15.5"
+    "jose": "^4.15.5",
+    "@privy-io/node": {
+      "jose": "^4.15.5"
+    }
   },
   "devDependencies": {
     "mongodb-memory-server": "^11.1.0",
