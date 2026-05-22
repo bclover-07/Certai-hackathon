@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-require("dns").setServers(["8.8.8.8", "8.8.4.4"]);
 let mongoServer = null;
 
 const ensureDbName = (uri) => {

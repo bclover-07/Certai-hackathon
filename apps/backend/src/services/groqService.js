@@ -14,7 +14,7 @@ Respond ONLY with valid JSON:
   "expiryYears": number or null
 }`;
 
-const withTimeout = (promise, ms = 5000, errorMessage = "Groq extraction timed out") => {
+const withTimeout = (promise, ms = 25000, errorMessage = "Groq extraction timed out") => {
   return Promise.race([
     promise,
     new Promise((_, reject) => setTimeout(() => reject(new Error(errorMessage)), ms))
@@ -35,7 +35,7 @@ const extract = async (claimText) => {
       max_tokens: 1024,
       response_format: { type: "json_object" },
     }),
-    5000
+    25000
   );
 
   const content = completion.choices[0]?.message?.content;

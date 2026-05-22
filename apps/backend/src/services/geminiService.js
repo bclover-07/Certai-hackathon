@@ -25,7 +25,7 @@ Rules:
 - confidence should reflect how well-structured and clear the claim is
 - Do NOT hallucinate information not present or inferable from the claim`;
 
-const withTimeout = (promise, ms = 5000, errorMessage = "Gemini extraction timed out") => {
+const withTimeout = (promise, ms = 25000, errorMessage = "Gemini extraction timed out") => {
   return Promise.race([
     promise,
     new Promise((_, reject) => setTimeout(() => reject(new Error(errorMessage)), ms))
