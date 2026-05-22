@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { usePrivy } from '@privy-io/react-auth';
+import { usePrivy } from './usePrivy';
 import { useClaimStore } from '../store/claimStore';
 import { BACKEND_URL } from '../lib/constants';
 

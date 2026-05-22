@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import NavLink from "../ui/NavLink";
-import { usePrivy } from "@privy-io/react-auth";
+import { usePrivy } from "../../hooks/usePrivy";
 import { NAV_ITEMS, BACKEND_URL } from "../../lib/constants";
 import { useWalletStore } from "../../store/walletStore";
 

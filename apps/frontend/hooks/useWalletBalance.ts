@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useWalletStore } from "../store/walletStore";
-import { usePrivy } from "@privy-io/react-auth";
+import { usePrivy } from "./usePrivy";
 import { useRouter } from "next/navigation";
 import { BACKEND_URL } from "../lib/constants";
 

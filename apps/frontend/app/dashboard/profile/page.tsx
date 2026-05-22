@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { usePrivy } from "@privy-io/react-auth";
+import { usePrivy } from "../../../hooks/usePrivy";
 import { BACKEND_URL } from "../../../lib/constants";
 import { useWalletStore } from "../../../store/walletStore";
 import GlassCard from "../../../components/ui/GlassCard";

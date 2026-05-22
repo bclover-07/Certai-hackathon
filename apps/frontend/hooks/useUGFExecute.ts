@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useClaimStore } from '../store/claimStore';
 import { useWalletStore } from '../store/walletStore';
-import { usePrivy, useWallets } from '@privy-io/react-auth';
+import { usePrivy, useWallets } from './usePrivy';
 import { BACKEND_URL } from '../lib/constants';
 
 let UGFClient: any = null;

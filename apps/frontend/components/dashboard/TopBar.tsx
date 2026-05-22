@@ -1,6 +1,6 @@
 "use client";
 
-import { usePrivy, useWallets } from "@privy-io/react-auth";
+import { usePrivy, useWallets } from "../../hooks/usePrivy";
 import { useWalletStore } from "../../store/walletStore";
 import { useEffect, useState, useRef } from "react";
 import { BACKEND_URL } from "../../lib/constants";
@@ -17,15 +17,19 @@ export default function TopBar({ onOpenMobileMenu }: TopBarProps) {
   const getTokenRef = useRef(getAccessToken);
   getTokenRef.current = getAccessToken;
 
+  const walletAddress = wallets[0]?.address;
+  const userWalletAddress = user?.wallet?.address;
+  const userId = user?.id;
+  const userEmail = user?.email?.address;
+
   useEffect(() => {
-    const activeAddress = user?.wallet?.address || wallets[0]?.address || user?.id;
+    const activeAddress = userWalletAddress || walletAddress || userId;
     if (activeAddress) {
-      setWallet(activeAddress, user?.email?.address || user?.id);
+      setWallet(activeAddress, userEmail || userId);
     } else {
       setWallet(null);
     }
-  }, [user, wallets, setWallet]);
-
+  }, [userWalletAddress, walletAddress, userId, userEmail, setWallet]);
 
   useEffect(() => {
     if (!address) return;

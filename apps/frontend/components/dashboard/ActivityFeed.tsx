@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { BACKEND_URL } from "../../lib/constants";
 import { useWalletStore } from "../../store/walletStore";
-import { usePrivy } from "@privy-io/react-auth";
+import { usePrivy } from "../../hooks/usePrivy";
 
 interface Activity {
   id: string;

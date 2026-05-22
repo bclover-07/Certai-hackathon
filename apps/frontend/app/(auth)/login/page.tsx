@@ -1,6 +1,6 @@
 "use client";
 
-import { usePrivy } from "@privy-io/react-auth";
+import { usePrivy } from "../../../hooks/usePrivy";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import GlassCard from "../../../components/ui/GlassCard";

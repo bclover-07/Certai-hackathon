@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { usePrivy } from '@privy-io/react-auth';
+import { usePrivy } from '../hooks/usePrivy';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import ProblemSection from '../components/landing/ProblemSection';

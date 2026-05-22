@@ -4,7 +4,7 @@ import { useState } from "react";
 import { BACKEND_URL } from "../../lib/constants";
 import { useWalletStore } from "../../store/walletStore";
 import GlassCard from "../ui/GlassCard";
-import { usePrivy } from "@privy-io/react-auth";
+import { usePrivy } from "../../hooks/usePrivy";
 import NeonButton from "../ui/NeonButton";
 
 export default function VerifyPanel() {

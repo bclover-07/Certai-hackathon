@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { usePrivy } from "@privy-io/react-auth";
+import { usePrivy } from "../../../hooks/usePrivy";
 import { BACKEND_URL } from "../../../lib/constants";
 import GlassCard from "../../../components/ui/GlassCard";
 import NeonButton from "../../../components/ui/NeonButton";

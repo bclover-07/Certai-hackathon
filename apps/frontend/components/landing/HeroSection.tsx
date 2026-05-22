@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, Suspense, useCallback } from 'react';
 import dynamic from 'next/dynamic';
-import { usePrivy } from '@privy-io/react-auth';
+import { usePrivy } from '../../hooks/usePrivy';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TypeAnimation } from 'react-type-animation';

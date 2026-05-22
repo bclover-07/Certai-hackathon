@@ -6,7 +6,7 @@ import { useWalletStore } from "../../../store/walletStore";
 import CredentialCard from "../../../components/dashboard/CredentialCard";
 import NeonButton from "../../../components/ui/NeonButton";
 import { useRouter } from "next/navigation";
-import { usePrivy } from "@privy-io/react-auth";
+import { usePrivy } from "../../../hooks/usePrivy";
 import DocumentUploadModal from "../../../components/documents/DocumentUploadModal";
 
 export default function IssuedPage() {

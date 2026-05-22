@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence, useMotionValue } from 'framer-motion';
-import { usePrivy } from '@privy-io/react-auth';
+import { usePrivy } from '../../hooks/usePrivy';
 import { useRouter } from 'next/navigation';
 
 const sectionVariants = {

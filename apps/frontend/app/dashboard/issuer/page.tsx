@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useWalletStore } from '../../../store/walletStore';
-import { usePrivy } from '@privy-io/react-auth';
+import { usePrivy } from '../../../hooks/usePrivy';
 import { BACKEND_URL } from '../../../lib/constants';
 import GlassCard from '../../../components/ui/GlassCard';
 import NeonButton from '../../../components/ui/NeonButton';

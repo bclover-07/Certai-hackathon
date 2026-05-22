@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PrivyProvider } from "@privy-io/react-auth";
 import { baseSepolia } from "viem/chains";
 
+import AuthGatewayModal from "./auth/AuthGatewayModal";
+
 interface ProvidersProps {
   children: ReactNode;
 }
@@ -43,6 +45,7 @@ export default function Providers({ children }: ProvidersProps) {
     >
       <QueryClientProvider client={queryClient}>
         {children}
+        <AuthGatewayModal />
       </QueryClientProvider>
     </PrivyProvider>
   );

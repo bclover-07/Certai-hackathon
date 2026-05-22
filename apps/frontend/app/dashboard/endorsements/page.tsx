@@ -5,7 +5,7 @@ import { BACKEND_URL } from "../../../lib/constants";
 import { useWalletStore } from "../../../store/walletStore";
 import GlassCard from "../../../components/ui/GlassCard";
 import NeonButton from "../../../components/ui/NeonButton";
-import { usePrivy } from "@privy-io/react-auth";
+import { usePrivy } from "../../../hooks/usePrivy";
 
 export default function EndorsementsPage() {
   const { address } = useWalletStore();

@@ -7,7 +7,7 @@ import { useWorldStore } from "../../../store/worldStore";
 import { BACKEND_URL } from "../../../lib/constants";
 import GlassCard from "../../../components/ui/GlassCard";
 import Badge from "../../../components/ui/Badge";
-import { usePrivy } from "@privy-io/react-auth";
+import { usePrivy } from "../../../hooks/usePrivy";
 
 const CredentialWorld = dynamic(
   () => import("../../../components/three/CredentialWorld"),

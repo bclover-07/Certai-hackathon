@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { BACKEND_URL } from "../../../lib/constants";
 import { useWalletStore } from "../../../store/walletStore";
 import VerifyPanel from "../../../components/dashboard/VerifyPanel";
-import { usePrivy } from "@privy-io/react-auth";
+import { usePrivy } from "../../../hooks/usePrivy";
 
 export default function VerifyPage() {
   const { address } = useWalletStore();
