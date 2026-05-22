@@ -1,7 +1,6 @@
 'use client';
 
 import Link, { LinkProps } from 'next/link';
-import { useRouter } from 'next/navigation';
 import NProgress from 'nprogress';
 
 type NavLinkProps = Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, keyof LinkProps> & LinkProps & {
@@ -10,21 +9,11 @@ type NavLinkProps = Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, keyof Li
 
 
 export default function NavLink({ href, children, onClick, ...props }: NavLinkProps) {
-  const router = useRouter();
-
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
-    if (
-      !e.defaultPrevented &&
-      e.button === 0 &&
-      (!props.target || props.target === '_self') &&
-      !(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey)
-    ) {
-      e.preventDefault();
-      NProgress.start();
-      router.push(href.toString());
-      if (onClick) {
-        onClick(e);
-      }
+    // Instantly start the premium progress spinner on click
+    NProgress.start();
+    if (onClick) {
+      onClick(e);
     }
   };
 
@@ -34,3 +23,4 @@ export default function NavLink({ href, children, onClick, ...props }: NavLinkPr
     </Link>
   );
 }
+
