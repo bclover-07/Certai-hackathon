@@ -5,7 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import NavLink from "../ui/NavLink";
 import { usePrivy } from "@privy-io/react-auth";
-import { NAV_ITEMS } from "../../lib/constants";
+import { NAV_ITEMS, BACKEND_URL } from "../../lib/constants";
+import { useWalletStore } from "../../store/walletStore";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -16,7 +17,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [optimisticPath, setOptimisticPath] = useState("");
   const pathname = usePathname();
   const router = useRouter();
-  const { logout } = usePrivy();
+  const { logout, getAccessToken } = usePrivy();
+  const { address } = useWalletStore();
+  const [role, setRole] = useState<string>("learner");
 
   const activePath = optimisticPath || pathname;
 
@@ -24,6 +27,39 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   useEffect(() => {
     setOptimisticPath("");
   }, [pathname]);
+
+  // Fetch role
+  useEffect(() => {
+    if (!address) return;
+    let cancelled = false;
+    const fetchRole = async () => {
+      try {
+        const token = await getAccessToken();
+        const res = await fetch(`${BACKEND_URL}/api/v1/users/${address}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok && !cancelled) {
+          const data = await res.json();
+          if (data.success && data.data?.profile?.role) {
+            setRole(data.data.profile.role);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching user role in sidebar:", err);
+      }
+    };
+    fetchRole();
+    return () => {
+      cancelled = true;
+    };
+  }, [address, getAccessToken]);
+
+  const filteredNavItems = NAV_ITEMS.filter((item) => {
+    if (item.label === "Issuer Portal") {
+      return role === "issuer" || role === "admin";
+    }
+    return true;
+  });
 
 
   const handleLogout = async () => {
@@ -70,7 +106,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
         {/* Navigation list */}
         <nav className="flex-1 space-y-1.5 px-4 py-6 overflow-y-auto">
-          {NAV_ITEMS.map((item) => {
+          {filteredNavItems.map((item) => {
             const isActive = activePath === item.href;
             return (
               <NavLink

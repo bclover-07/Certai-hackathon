@@ -101,7 +101,7 @@ export const useUGFExecute = () => {
           credential: { ...currentCredential, txHash: confirmedTxHash, status: 'active', tokenId: mockTokenId }
         });
 
-        await syncBackendStatus(currentCredential.id, 'active', confirmedTxHash, mockTokenId);
+        await syncBackendStatus(currentCredential.id, 'active', confirmedTxHash, mockTokenId, currentCredential.bioVerification);
         setCredential({ ...currentCredential, txHash: confirmedTxHash, status: 'active', tokenId: mockTokenId });
 
       } else {
@@ -130,7 +130,7 @@ export const useUGFExecute = () => {
           credential: { ...currentCredential, txHash: mockTxHash, status: 'active', tokenId: mockTokenId }
         });
 
-        await syncBackendStatus(currentCredential.id, 'active', mockTxHash, mockTokenId);
+        await syncBackendStatus(currentCredential.id, 'active', mockTxHash, mockTokenId, currentCredential.bioVerification);
         setCredential({ ...currentCredential, txHash: mockTxHash, status: 'active', tokenId: mockTokenId });
       }
 
@@ -144,7 +144,7 @@ export const useUGFExecute = () => {
     }
   };
 
-  const syncBackendStatus = async (id: string, status: string, txHash: string, tokenId: string) => {
+  const syncBackendStatus = async (id: string, status: string, txHash: string, tokenId: string, bioVerification?: any) => {
     try {
       const token = await getAccessToken();
 
@@ -157,7 +157,8 @@ export const useUGFExecute = () => {
         body: JSON.stringify({
           status,
           txHash,
-          tokenId
+          tokenId,
+          bioVerification
         })
       });
     } catch (err) {

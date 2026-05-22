@@ -31,6 +31,10 @@ const userSchema = new mongoose.Schema(
       },
       avatarUrl: { type: String, default: "" },
       bio: { type: String, maxlength: 500, default: "" },
+      isVerifiedIssuer: { type: Boolean, default: false },
+      issuerVerifiedAt: { type: Date, default: null },
+      institutionName: { type: String, trim: true, default: "" },
+      institutionDomain: { type: String, trim: true, default: "" },
     },
     stats: {
       credentialsMinted: { type: Number, default: 0 },

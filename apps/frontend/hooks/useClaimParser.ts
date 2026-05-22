@@ -43,13 +43,29 @@ export const useClaimParser = () => {
         credential: data.data.credential
       });
 
+      const checkIfBioRequired = (credential: any): boolean => {
+        if (!credential) return false;
+        const HIGH_STAKES = [
+          'cpr', 'bls', 'acls', 'pals', 'trauma', 'emergency',
+          'resuscitation', 'airway', 'triage', 'cardiac', 'life support',
+          'board certification', 'medical license', 'clinical'
+        ];
+        const inputLower = (credential.title || '').toLowerCase();
+        return HIGH_STAKES.some(term => inputLower.includes(term));
+      };
+
+      const requiresBio = data.data.requiresBioVerification || checkIfBioRequired(data.data.credential);
+
       if (data.data.credential && data.data.credential.credentialType !== 'invalid') {
-        setCredential({
+        const credData = {
           ...data.data.credential,
           id: data.data.credentialId,
           calldata: data.data.calldata,
           contractAddress: data.data.contractAddress
-        });
+        };
+        if (!requiresBio) {
+          setCredential(credData);
+        }
       } else {
         setCredential(null);
       }

@@ -8,6 +8,8 @@ router.use('/verify',      require('./verifyRoutes'));
 router.use('/endorse',     require('./endorseRoutes'));
 router.use('/leaderboard', require('./leaderboardRoutes'));
 router.use('/webhook',     require('./webhookRoutes'));
+router.use('/documents',   require('./documentRoutes'));
+router.use('/issuer',      require('./issuerRoutes'));
 
 router.get('/stats', statsController.getPublicStats);
 

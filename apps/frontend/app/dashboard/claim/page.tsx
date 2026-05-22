@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useClaimStore } from "../../../store/claimStore";
 import { useWalletStore } from "../../../store/walletStore";
 import { useClaimParser } from "../../../hooks/useClaimParser";
@@ -10,20 +11,107 @@ import UGFInspector from "../../../components/claim/UGFInspector";
 import ConfirmedBadge from "../../../components/claim/ConfirmedBadge";
 import QuickClaims from "../../../components/claim/QuickClaims";
 import GlassCard from "../../../components/ui/GlassCard";
+import dynamic from 'next/dynamic';
+
+const BioVerificationModal = dynamic(
+  () => import('@/components/bio/BioVerificationModal'),
+  { ssr: false }
+);
 
 export default function ClaimPage() {
-  const { currentCredential, ugfStage, setUGFStage, setCredential } = useClaimStore();
+  const { currentCredential, ugfStage, setUGFStage, setCredential, addMessage } = useClaimStore();
   const { address } = useWalletStore();
   
   const { parseClaim, isLoading: isAnalyzing } = useClaimParser();
   const { executeUGF } = useUGFExecute();
 
-  const handleSendClaim = (text: string) => {
+  const [showBioModal, setShowBioModal] = useState(false);
+  const [bioCredentialTitle, setBioCredentialTitle] = useState('');
+  const [bioVerified, setBioVerified] = useState(false);
+  const [bioResult, setBioResult] = useState<any>(null);
+  const [pendingBioCredential, setPendingBioCredential] = useState<any>(null);
+
+  // Detect if AI response requires bio verification
+  const checkIfBioRequired = (reply: string, credential: any): boolean => {
+    const HIGH_STAKES = [
+      'cpr', 'bls', 'acls', 'pals', 'trauma', 'emergency',
+      'resuscitation', 'airway', 'triage', 'cardiac', 'life support',
+      'board certification', 'medical license', 'clinical'
+    ];
+    const inputLower = (credential?.title || '').toLowerCase();
+    return HIGH_STAKES.some(term => inputLower.includes(term));
+  };
+
+  // Called when AI returns a parsed credential
+  const handleAIResponse = (response: any) => {
+    if (response.credential && checkIfBioRequired('', response.credential)) {
+      // Store the credential and trigger bio verification
+      setPendingBioCredential(response);
+      setBioCredentialTitle(response.credential.title || 'Clinical Credential');
+      setShowBioModal(true);
+    } else {
+      // Regular credential — mint directly (existing UGF flow)
+      if (response.credential && response.credential.credentialType !== 'invalid') {
+        setCredential({
+          ...response.credential,
+          id: response.credentialId,
+          calldata: response.calldata,
+          contractAddress: response.contractAddress
+        });
+      }
+    }
+  };
+
+  // Called when bio verification completes
+  const handleBioComplete = (result: any) => {
+    setShowBioModal(false);
+    setBioResult(result);
+    setBioVerified(true);
+
+    if (result.passed) {
+      // Attach bio data to pending credential and proceed to UGF
+      const enrichedCredential = {
+        ...pendingBioCredential.credential,
+        id: pendingBioCredential.credentialId,
+        calldata: pendingBioCredential.calldata,
+        contractAddress: pendingBioCredential.contractAddress,
+        bioVerification: {
+          passed: true,
+          livenessScore: result.livenessScore,
+          heartRateAvg: result.heartRateAvg,
+          stressScore: result.stressScore,
+          clinicalScore: `${result.clinicalScore}/3`,
+          meshDetected: result.meshDetected,
+          verifiedAt: new Date().toISOString()
+        }
+      };
+
+      // Add confirmation message to chat
+      addMessage({
+        role: 'assistant',
+        content: `✅ Bio-verification passed!\n\n🫀 Heart Rate: ${result.heartRateAvg} BPM\n👁 Liveness: ${result.livenessScore}%\n🧠 Clinical: ${result.clinicalScore}/3 correct\n\nYour SoulBound credential will include the "Bio-Verified" trait permanently on Base Sepolia. Ready to mint with UGF?`
+      });
+
+      // Proceed to UGF by setting currentCredential in Zustand store
+      setCredential(enrichedCredential);
+    } else {
+      addMessage({
+        role: 'assistant',
+        content: `⚠️ Bio-verification did not pass (Clinical: ${result.clinicalScore}/3, Liveness: ${result.livenessScore}%). The credential requires at least 2/3 correct answers and liveness confirmation. Please try again.`
+      });
+      setPendingBioCredential(null);
+    }
+  };
+
+  const handleSendClaim = async (text: string) => {
     if (!address) {
       alert("Please connect your wallet session first!");
       return;
     }
-    parseClaim(text, address);
+    const result = await parseClaim(text, address);
+    if (result) {
+      handleAIResponse(result);
+    }
   };
 
   const handleTriggerMint = () => {
@@ -107,6 +195,22 @@ export default function ClaimPage() {
           )}
         </div>
       </div>
+
+      {/* Bio Verification Modal */}
+      {showBioModal && (
+        <BioVerificationModal
+          credentialTitle={bioCredentialTitle}
+          onComplete={handleBioComplete}
+          onCancel={() => {
+            setShowBioModal(false);
+            setPendingBioCredential(null);
+            addMessage({
+              role: 'assistant',
+              content: 'Bio-verification cancelled. High-stakes credentials require biometric verification. Let me know when you are ready to try again.'
+            });
+          }}
+        />
+      )}
     </div>
   );
 }
