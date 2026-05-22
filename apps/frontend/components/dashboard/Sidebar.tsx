@@ -18,7 +18,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { logout, getAccessToken } = usePrivy();
-  const { address } = useWalletStore();
+  const { address, disconnect } = useWalletStore();
   const [role, setRole] = useState<string>("learner");
 
   const activePath = optimisticPath || pathname;
@@ -63,6 +63,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
 
   const handleLogout = async () => {
+    disconnect();
     await logout();
     router.push("/");
   };
