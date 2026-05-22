@@ -2,6 +2,7 @@ const VerificationLog = require('../models/VerificationLog');
 const Credential = require('../models/Credential');
 const leaderboardService = require('../services/leaderboardService');
 const { success, error } = require('../utils/responseHelper');
+const { recomputeAndSave } = require('../services/trustScoreService');
 
 const verifyCredential = async (req, res, next) => {
   try {
@@ -23,6 +24,12 @@ const verifyCredential = async (req, res, next) => {
 
       credential.verificationCount = (credential.verificationCount || 0) + 1;
       await credential.save();
+
+      try {
+        await recomputeAndSave(credential);
+      } catch (e) {
+        console.error('Failed to recompute trust score after verification:', e.message);
+      }
     }
 
     const log = await VerificationLog.create({

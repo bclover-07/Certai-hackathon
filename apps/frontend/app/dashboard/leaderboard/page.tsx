@@ -93,7 +93,7 @@ export default function LeaderboardPage() {
                 <GlassCard
                   key={user.walletAddress}
                   className="p-5 flex items-center justify-between transition-all duration-300 hover:scale-[1.01]"
-                  glowColor={rank === 1 ? "blue" : rank === 2 ? "purple" : "none"}
+                  glowColor={rank === 1 ? "blue" : rank === 2 ? "purple" : rank === 3 ? "emerald" : "none"}
                 >
                   {/* Left: Rank, Name, Organization */}
                   <div className="flex items-center gap-4 min-w-0">

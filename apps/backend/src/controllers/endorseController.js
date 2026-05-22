@@ -2,6 +2,7 @@ const Endorsement = require('../models/Endorsement');
 const Credential = require('../models/Credential');
 const leaderboardService = require('../services/leaderboardService');
 const { success, error } = require('../utils/responseHelper');
+const { recomputeAndSave } = require('../services/trustScoreService');
 
 const createEndorsement = async (req, res, next) => {
   try {
@@ -30,6 +31,17 @@ const createEndorsement = async (req, res, next) => {
       await leaderboardService.updatePoints(recipientAddress, 'endorse');
     } catch (e) {
       console.error('Failed to update leaderboard points for endorsement:', e.message);
+    }
+
+    if (credentialId) {
+      try {
+        const credential = await Credential.findById(credentialId);
+        if (credential) {
+          await recomputeAndSave(credential);
+        }
+      } catch (e) {
+        console.error('Failed to recompute trust score after endorsement:', e.message);
+      }
     }
 
     return res.status(201).json(success(endorsement, 'Endorsement recorded successfully'));

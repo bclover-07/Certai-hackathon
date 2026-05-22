@@ -191,6 +191,7 @@ export const NAV_ITEMS = [
   { label: "My Credentials", href: "/dashboard/issued", icon: "📜" },
   { label: "Endorsements", href: "/dashboard/endorsements", icon: "🤝" },
   { label: "Leaderboard", href: "/dashboard/leaderboard", icon: "🏆" },
+  { label: "Issuer Portal", href: "/dashboard/issuer", icon: "🏛️" },
   { label: "Profile", href: "/dashboard/profile", icon: "👤" },
 ] as const;
 

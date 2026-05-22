@@ -18,11 +18,12 @@ export default function TopBar({ onOpenMobileMenu }: TopBarProps) {
   getTokenRef.current = getAccessToken;
 
   useEffect(() => {
-    const activeAddress = user?.wallet?.address || wallets[0]?.address;
+    const activeAddress = user?.wallet?.address || wallets[0]?.address || user?.id;
     if (activeAddress) {
       setWallet(activeAddress, user?.email?.address || user?.id);
     }
   }, [user, wallets, setWallet]);
+
 
   useEffect(() => {
     if (!address) return;

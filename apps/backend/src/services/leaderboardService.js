@@ -104,4 +104,40 @@ const updatePoints = async (walletAddress, action, amount = 1) => {
   };
 };
 
-module.exports = { updatePoints, POINTS_MAP };
+const syncAllUsersToLeaderboard = async () => {
+  try {
+    const users = await User.find().lean();
+    if (users.length === 0) return;
+
+    const ops = users.map(user => {
+      const addr = user.walletAddress.toLowerCase();
+      return {
+        updateOne: {
+          filter: { walletAddress: addr },
+          update: {
+            $set: {
+              displayName: user.profile?.displayName || `Scholar ${addr.substring(0, 8)}`,
+              organization: user.profile?.organization || "No Affiliation",
+              points: user.stats?.points || 0,
+              breakdown: {
+                credentialsMinted: user.stats?.credentialsMinted || 0,
+                endorsementsReceived: user.stats?.endorsementsReceived || 0,
+                verificationsRun: user.stats?.verificationsRun || 0,
+                hoursLogged: user.stats?.totalHoursLogged || 0,
+              },
+              updatedAt: new Date()
+            }
+          },
+          upsert: true
+        }
+      };
+    });
+
+    await LeaderboardEntry.bulkWrite(ops);
+  } catch (err) {
+    console.error("Failed to sync users to leaderboard:", err);
+  }
+};
+
+module.exports = { updatePoints, POINTS_MAP, syncAllUsersToLeaderboard };
+

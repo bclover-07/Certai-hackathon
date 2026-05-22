@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const path = require("path");
+const fs = require("fs");
 let mongoServer = null;
 
 const ensureDbName = (uri) => {
@@ -15,10 +17,26 @@ const ensureDbName = (uri) => {
   }
 };
 
+const getPersistentMongoServer = async () => {
+  const { MongoMemoryServer } = require("mongodb-memory-server");
+  const dbPath = path.join(__dirname, "../../data/db");
+  
+  if (!fs.existsSync(dbPath)) {
+    fs.mkdirSync(dbPath, { recursive: true });
+  }
+
+  return await MongoMemoryServer.create({
+    instance: {
+      dbPath: dbPath,
+      storageEngine: "wiredTiger"
+    }
+  });
+};
+
 const connectDB = async () => {
   let uri = process.env.MONGODB_URI;
   if (!uri) {
-    console.warn("[MongoDB] MONGODB_URI not set. Falling back to in-memory server for development.");
+    console.warn("[MongoDB] MONGODB_URI not set. Falling back to persistent local database for development.");
     uri = "mongodb://localhost:27017/certai";
   }
 
@@ -46,24 +64,22 @@ const connectDB = async () => {
 
   try {
     if (uri.includes("localhost") || uri.includes("127.0.0.1")) {
-      const { MongoMemoryServer } = require("mongodb-memory-server");
-      mongoServer = await MongoMemoryServer.create();
+      mongoServer = await getPersistentMongoServer();
       uri = mongoServer.getUri();
-      console.log(`[MongoDB] Using in-memory database: ${uri}`);
+      console.log(`[MongoDB] Using persistent local database: ${uri}`);
     }
     await tryConnect(uri);
   } catch (err) {
     console.error("[MongoDB] Initial connection failed:", err.message);
     if (!uri.includes("localhost") && !uri.includes("127.0.0.1")) {
-      console.log("[MongoDB] Attempting fallback to in-memory database...");
+      console.log("[MongoDB] Attempting fallback to persistent local database...");
       try {
-        const { MongoMemoryServer } = require("mongodb-memory-server");
-        mongoServer = await MongoMemoryServer.create();
+        mongoServer = await getPersistentMongoServer();
         const fallbackUri = mongoServer.getUri();
-        console.log(`[MongoDB] Using fallback in-memory database: ${fallbackUri}`);
+        console.log(`[MongoDB] Using fallback persistent local database: ${fallbackUri}`);
         await tryConnect(fallbackUri);
       } catch (fallbackErr) {
-        console.error("[MongoDB] Fallback in-memory database also failed:", fallbackErr.message);
+        console.error("[MongoDB] Fallback persistent local database also failed:", fallbackErr.message);
         process.exit(1);
       }
     } else {
@@ -73,3 +89,4 @@ const connectDB = async () => {
 };
 
 module.exports = connectDB;
+
