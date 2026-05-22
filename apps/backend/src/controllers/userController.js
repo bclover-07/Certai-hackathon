@@ -30,7 +30,24 @@ const getUsers = async (req, res, next) => {
 const getUser = async (req, res, next) => {
   try {
     const { address } = req.params;
-    const user = await User.findOne({ walletAddress: address.toLowerCase() });
+    let user = await User.findOne({ walletAddress: address.toLowerCase() });
+
+    // Fallback: If address not found, check if privyUserId is active to consolidate identity
+    if (!user && req.user && req.user.privyUserId) {
+      user = await User.findOne({ privyUserId: req.user.privyUserId });
+      if (user) {
+        const oldAddress = user.walletAddress;
+        user.walletAddress = address.toLowerCase();
+        user.lastActiveAt = new Date();
+        await user.save();
+
+        // Rename the leaderboard entry address to keep the point history and rank intact
+        await LeaderboardEntry.findOneAndUpdate(
+          { walletAddress: oldAddress.toLowerCase() },
+          { $set: { walletAddress: address.toLowerCase(), updatedAt: new Date() } }
+        );
+      }
+    }
 
     if (!user) {
       return res.status(404).json(error('User not found'));
@@ -50,15 +67,29 @@ const createUser = async (req, res, next) => {
       return res.status(400).json(error('Wallet address is required'));
     }
 
-    let user = await User.findOne({ walletAddress: walletAddress.toLowerCase() });
+    const privyUserId = req.user ? req.user.privyUserId : req.body.privyUserId;
+    let user = null;
+
+    if (privyUserId) {
+      user = await User.findOne({ privyUserId });
+    }
+    if (!user) {
+      user = await User.findOne({ walletAddress: walletAddress.toLowerCase() });
+    }
 
     if (user) {
+      // If the user logs in with a new active wallet linked to their Privy profile, update it
+      if (user.walletAddress !== walletAddress.toLowerCase()) {
+        user.walletAddress = walletAddress.toLowerCase();
+        user.lastActiveAt = new Date();
+        await user.save();
+      }
       return res.json(success(user, 'User already exists'));
     }
 
     user = await User.create({
       walletAddress: walletAddress.toLowerCase(),
-      privyUserId: req.user ? req.user.privyUserId : undefined,
+      privyUserId: privyUserId,
       email,
       profile: {
         displayName: profile?.displayName || `User_${walletAddress.slice(2, 8)}`,
@@ -70,6 +101,30 @@ const createUser = async (req, res, next) => {
       },
       lastActiveAt: new Date()
     });
+
+    // Seed default LeaderboardEntry immediately so they show up on the ladder instantly
+    await LeaderboardEntry.findOneAndUpdate(
+      { walletAddress: walletAddress.toLowerCase() },
+      {
+        $setOnInsert: {
+          walletAddress: walletAddress.toLowerCase(),
+          points: 0,
+          rank: 0,
+          breakdown: {
+            credentialsMinted: 0,
+            endorsementsReceived: 0,
+            verificationsRun: 0,
+            hoursLogged: 0,
+          }
+        },
+        $set: {
+          displayName: user.profile.displayName,
+          organization: user.profile.organization,
+          updatedAt: new Date()
+        }
+      },
+      { upsert: true, new: true }
+    );
 
     return res.status(201).json(success(user, 'User onboarded successfully'));
   } catch (err) {
