@@ -24,7 +24,7 @@ export default function OnboardPage() {
   useEffect(() => {
     if (ready && user && !displayName) {
       const googleName = user.google?.name || 
-        user.linkedAccounts?.find((a: any) => a.type === "google_oauth")?.name || "";
+        (user.linkedAccounts?.find((a: any) => a.type === "google_oauth") as any)?.name || "";
       
       if (googleName) {
         setDisplayName(googleName);
@@ -94,8 +94,8 @@ export default function OnboardPage() {
 
       // Dynamically extract email address from standard email or Google OAuth accounts
       const emailAddress = user?.email?.address || user?.google?.email || 
-        user?.linkedAccounts?.find((acc: any) => acc.type === "email" || acc.type === "google_oauth")?.address || 
-        user?.linkedAccounts?.find((acc: any) => acc.type === "email" || acc.type === "google_oauth")?.email || "";
+        (user?.linkedAccounts?.find((acc: any) => acc.type === "email" || acc.type === "google_oauth") as any)?.address || 
+        (user?.linkedAccounts?.find((acc: any) => acc.type === "email" || acc.type === "google_oauth") as any)?.email || "";
 
       const res = await fetch(`${BACKEND_URL}/api/v1/users`, {
         method: "POST",

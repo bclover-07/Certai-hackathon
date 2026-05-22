@@ -52,7 +52,11 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   .glass-card-hover {
-    @apply glass-card transition-all duration-300;
+    @apply relative overflow-hidden rounded-2xl transition-all duration-300;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
   }
 
   .glass-card-hover:hover {
@@ -312,4 +316,45 @@ button:active, a:active, [role="button"]:active {
 @keyframes marquee {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
+}
+
+/* Sandbox & enhanced landing animations */
+@keyframes grid-scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+@keyframes aurora {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes orbit {
+  0% { transform: rotate(0deg) translateX(80px) rotate(0deg); }
+  100% { transform: rotate(360deg) translateX(80px) rotate(-360deg); }
+}
+
+.animate-aurora {
+  background-size: 200% 200%;
+  animation: aurora 8s ease-in-out infinite;
+}
+
+.animate-orbit {
+  animation: orbit 12s linear infinite;
+}
+
+/* Smooth section transitions */
+.section-fade-in {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.section-fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
 }

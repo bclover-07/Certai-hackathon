@@ -8,6 +8,7 @@ import ProblemSection from '../components/landing/ProblemSection';
 import HowItWorksSection from '../components/landing/HowItWorksSection';
 import FeaturesSection from '../components/landing/FeaturesSection';
 import RolesSection from '../components/landing/RolesSection';
+import SandboxSection from '../components/landing/SandboxSection';
 import StatsSection from '../components/landing/StatsSection';
 import TestimonialsSection from '../components/landing/TestimonialsSection';
 import CTASection from '../components/landing/CTASection';
@@ -31,6 +32,7 @@ export default function LandingPage() {
       <HeroSection />
       <ProblemSection />
       <HowItWorksSection />
+      <SandboxSection />
       <FeaturesSection />
       <RolesSection />
       <StatsSection />
