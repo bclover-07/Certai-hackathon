@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const LeaderboardEntry = require('../models/LeaderboardEntry');
 const { success, error } = require('../utils/responseHelper');
 
 const getUsers = async (req, res, next) => {
@@ -98,6 +99,19 @@ const updateUser = async (req, res, next) => {
 
     user.lastActiveAt = new Date();
     await user.save();
+
+    if (profile && (profile.displayName || profile.organization)) {
+      await LeaderboardEntry.findOneAndUpdate(
+        { walletAddress: address.toLowerCase() },
+        {
+          $set: {
+            ...(profile.displayName && { displayName: profile.displayName }),
+            ...(profile.organization && { organization: profile.organization }),
+            updatedAt: new Date()
+          }
+        }
+      );
+    }
 
     return res.json(success(user, 'User updated successfully'));
   } catch (err) {

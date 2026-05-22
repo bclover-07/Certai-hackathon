@@ -53,6 +53,8 @@ export const useUGFExecute = () => {
         }
       } as any;
 
+      const mockTokenId = Math.floor(Math.random() * 1000000).toString();
+
       if (UGFClient) {
         const client = new UGFClient();
 
@@ -96,11 +98,11 @@ export const useUGFExecute = () => {
         addMessage({
           role: 'assistant',
           content: 'SoulBound credential minted successfully on Base Sepolia!',
-          credential: { ...currentCredential, txHash: confirmedTxHash, status: 'active' }
+          credential: { ...currentCredential, txHash: confirmedTxHash, status: 'active', tokenId: mockTokenId }
         });
 
-        await syncBackendStatus(currentCredential.id, 'active', confirmedTxHash);
-        setCredential({ ...currentCredential, txHash: confirmedTxHash, status: 'active' });
+        await syncBackendStatus(currentCredential.id, 'active', confirmedTxHash, mockTokenId);
+        setCredential({ ...currentCredential, txHash: confirmedTxHash, status: 'active', tokenId: mockTokenId });
 
       } else {
         await new Promise((r) => setTimeout(r, 1200)); 
@@ -125,11 +127,11 @@ export const useUGFExecute = () => {
         addMessage({
           role: 'assistant',
           content: `On-chain confirmation received! Your credential has been securely minted. SoulBound ID permanently locked to your address.`,
-          credential: { ...currentCredential, txHash: mockTxHash, status: 'active' }
+          credential: { ...currentCredential, txHash: mockTxHash, status: 'active', tokenId: mockTokenId }
         });
 
-        await syncBackendStatus(currentCredential.id, 'active', mockTxHash);
-        setCredential({ ...currentCredential, txHash: mockTxHash, status: 'active' });
+        await syncBackendStatus(currentCredential.id, 'active', mockTxHash, mockTokenId);
+        setCredential({ ...currentCredential, txHash: mockTxHash, status: 'active', tokenId: mockTokenId });
       }
 
     } catch (err: any) {
@@ -142,10 +144,9 @@ export const useUGFExecute = () => {
     }
   };
 
-  const syncBackendStatus = async (id: string, status: string, txHash: string) => {
+  const syncBackendStatus = async (id: string, status: string, txHash: string, tokenId: string) => {
     try {
       const token = await getAccessToken();
-      const mockTokenId = Math.floor(Math.random() * 1000000).toString();
 
       await fetch(`${BACKEND_URL}/api/v1/credentials/${id}/status`, {
         method: 'PUT',
@@ -156,7 +157,7 @@ export const useUGFExecute = () => {
         body: JSON.stringify({
           status,
           txHash,
-          tokenId: mockTokenId
+          tokenId
         })
       });
     } catch (err) {

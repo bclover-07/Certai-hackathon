@@ -13,7 +13,7 @@ const classify = async (text, categories) => {
   const result = await withTimeout(
     hf.zeroShotClassification({
       model: "facebook/bart-large-mnli",
-      inputs: text,
+      inputs: [text],
       parameters: {
         candidate_labels: categories,
       },

@@ -12,7 +12,7 @@ const getPrivyClient = () => {
     throw new Error("PRIVY_APP_ID and PRIVY_APP_SECRET must be set");
   }
 
-  privyClient = new PrivyClient(appId, appSecret);
+  privyClient = new PrivyClient({ appId, appSecret });
   return privyClient;
 };
 
@@ -37,14 +37,15 @@ const auth = async (req, res, next) => {
     }
 
     const client = getPrivyClient();
-    const { userId } = await client.verifyAuthToken(token);
+    const { user_id } = await client.utils().auth().verifyAuthToken(token);
 
     req.user = {
-      privyUserId: userId,
+      privyUserId: user_id,
     };
 
     next();
   } catch (err) {
+    console.error("Auth middleware error details:", err);
     if (
       err.message &&
       (err.message.includes("expired") || err.message.includes("invalid"))
