@@ -59,7 +59,7 @@ export default function ClaimPage() {
           {ugfStage === "confirmed" && currentCredential && (
             <ConfirmedBadge
               title={currentCredential.title}
-              tokenId={Math.floor(Math.random() * 1000000).toString()} // Simulated token ID for mock state
+              tokenId={currentCredential.tokenId || "1"}
               txHash={currentCredential.txHash || "0x98f...e3a"}
               onClose={handleCelebrationClose}
             />
