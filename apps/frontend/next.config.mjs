@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
+  transpilePackages: ["@headlessui/react", "@react-aria/focus", "react-aria"],
   webpack: (config, { webpack, isServer }) => {
     config.plugins.push(
       new webpack.IgnorePlugin({
