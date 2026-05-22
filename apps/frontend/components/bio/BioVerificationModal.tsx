@@ -302,7 +302,7 @@ export default function BioVerificationModal({
   // ── Main processing loop ───────────────────────────────────────────────────
   const startProcessingLoop = useCallback(() => {
     let frameCount = 0;
-    let scanStart = Date.now();
+    const scanStart = Date.now();
 
     const process = () => {
       const video = videoRef.current;
