@@ -35,7 +35,7 @@ interface FlipCardProps {
   glowColor: string;
 }
 
-const FlipCard = ({ icon, title, tagline, bullets, accentColor, glowColor }: FlipCardProps) => {
+const FlipCard = ({ icon, title, tagline, bullets, accentColor }: FlipCardProps) => {
   return (
     <motion.div
       variants={cardVariants}
