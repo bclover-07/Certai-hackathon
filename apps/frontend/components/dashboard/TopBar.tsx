@@ -21,6 +21,8 @@ export default function TopBar({ onOpenMobileMenu }: TopBarProps) {
     const activeAddress = user?.wallet?.address || wallets[0]?.address || user?.id;
     if (activeAddress) {
       setWallet(activeAddress, user?.email?.address || user?.id);
+    } else {
+      setWallet(null);
     }
   }, [user, wallets, setWallet]);
 
