@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";
 import { BACKEND_URL } from "../../../lib/constants";
@@ -8,7 +8,7 @@ import GlassCard from "../../../components/ui/GlassCard";
 import NeonButton from "../../../components/ui/NeonButton";
 
 export default function OnboardPage() {
-  const { user, getAccessToken } = usePrivy();
+  const { user, getAccessToken, ready, authenticated } = usePrivy();
   const router = useRouter();
   
   const [step, setStep] = useState(1);
@@ -18,6 +18,70 @@ export default function OnboardPage() {
   const [organization, setOrganization] = useState("");
   const [bio, setBio] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [checkingOnboarded, setCheckingOnboarded] = useState(true);
+
+  // Pre-fill displayName from Privy login method (Google profile name or email username)
+  useEffect(() => {
+    if (ready && user && !displayName) {
+      const googleName = user.google?.name || 
+        user.linkedAccounts?.find((a: any) => a.type === "google_oauth")?.name || "";
+      
+      if (googleName) {
+        setDisplayName(googleName);
+      } else if (user.email?.address) {
+        // Fallback to username part of the email address
+        setDisplayName(user.email.address.split("@")[0]);
+      }
+    }
+  }, [ready, user, displayName]);
+
+  useEffect(() => {
+    if (ready && !authenticated) {
+      router.push("/login");
+      return;
+    }
+
+    if (!ready || !user) return;
+
+    const checkOnboardedStatus = async () => {
+      try {
+        const token = await getAccessToken();
+        const address = user?.wallet?.address || user?.id;
+        if (!address) {
+          setCheckingOnboarded(false);
+          return;
+        }
+
+        const res = await fetch(`${BACKEND_URL}/api/v1/users/${address}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (res.ok) {
+          router.push("/dashboard");
+        } else {
+          setCheckingOnboarded(false);
+        }
+      } catch (err) {
+        console.error("Error checking onboarding status:", err);
+        setCheckingOnboarded(false);
+      }
+    };
+
+    checkOnboardedStatus();
+  }, [ready, authenticated, user, router, getAccessToken]);
+
+  if (checkingOnboarded) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-[#070a24]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-10 w-10 rounded-full border-2 border-purple-400 border-t-transparent animate-spin" />
+          <span className="text-purple-400 animate-pulse text-sm font-semibold uppercase tracking-wider">
+            Verifying Authentication Status...
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +90,12 @@ export default function OnboardPage() {
     setIsSubmitting(true);
     try {
       const token = await getAccessToken();
-      const walletAddress = user?.wallet?.address || "0x0000000000000000000000000000000000000000";
+      const walletAddress = user?.wallet?.address || user?.id || "0x0000000000000000000000000000000000000000";
+
+      // Dynamically extract email address from standard email or Google OAuth accounts
+      const emailAddress = user?.email?.address || user?.google?.email || 
+        user?.linkedAccounts?.find((acc: any) => acc.type === "email" || acc.type === "google_oauth")?.address || 
+        user?.linkedAccounts?.find((acc: any) => acc.type === "email" || acc.type === "google_oauth")?.email || "";
 
       const res = await fetch(`${BACKEND_URL}/api/v1/users`, {
         method: "POST",
@@ -37,7 +106,7 @@ export default function OnboardPage() {
         body: JSON.stringify({
           walletAddress,
           privyUserId: user?.id,
-          email: user?.email?.address || "",
+          email: emailAddress,
           profile: {
             displayName,
             organization,

@@ -2,6 +2,44 @@ const User = require('../models/User');
 const LeaderboardEntry = require('../models/LeaderboardEntry');
 const { success, error } = require('../utils/responseHelper');
 
+const mergeDuplicateUsersIfNeeded = async (primaryUser, targetAddress) => {
+  if (!primaryUser || !targetAddress || !targetAddress.toLowerCase().startsWith('0x')) {
+    return primaryUser;
+  }
+
+  const normalizedTarget = targetAddress.toLowerCase();
+  const duplicateUser = await User.findOne({ walletAddress: normalizedTarget });
+  
+  if (duplicateUser && primaryUser._id.toString() !== duplicateUser._id.toString()) {
+    console.log(`[Identity Merger] Duplicate accounts detected. Merging duplicate user '${duplicateUser._id}' into primary user '${primaryUser._id}'...`);
+    
+    primaryUser.stats.credentialsMinted = Math.max(primaryUser.stats?.credentialsMinted || 0, duplicateUser.stats?.credentialsMinted || 0);
+    primaryUser.stats.endorsementsReceived = Math.max(primaryUser.stats?.endorsementsReceived || 0, duplicateUser.stats?.endorsementsReceived || 0);
+    primaryUser.stats.verificationsRun = Math.max(primaryUser.stats?.verificationsRun || 0, duplicateUser.stats?.verificationsRun || 0);
+    primaryUser.stats.totalHoursLogged = Math.max(primaryUser.stats?.totalHoursLogged || 0, duplicateUser.stats?.totalHoursLogged || 0);
+    primaryUser.stats.points = Math.max(primaryUser.stats?.points || 0, duplicateUser.stats?.points || 0);
+    
+    if (!primaryUser.profile.displayName && duplicateUser.profile?.displayName) primaryUser.profile.displayName = duplicateUser.profile.displayName;
+    if (!primaryUser.profile.organization && duplicateUser.profile?.organization) primaryUser.profile.organization = duplicateUser.profile.organization;
+    if (!primaryUser.profile.specialty && duplicateUser.profile?.specialty) primaryUser.profile.specialty = duplicateUser.profile.specialty;
+    if (!primaryUser.profile.bio && duplicateUser.profile?.bio) primaryUser.profile.bio = duplicateUser.profile.bio;
+    if (!primaryUser.profile.avatarUrl && duplicateUser.profile?.avatarUrl) primaryUser.profile.avatarUrl = duplicateUser.profile.avatarUrl;
+    if (!primaryUser.email && duplicateUser.email) primaryUser.email = duplicateUser.email;
+    
+    primaryUser.walletAddress = normalizedTarget;
+    primaryUser.lastActiveAt = new Date();
+    
+    await User.deleteOne({ _id: duplicateUser._id });
+    await primaryUser.save();
+    
+    await LeaderboardEntry.findOneAndDelete({ walletAddress: normalizedTarget });
+    
+    console.log(`[Identity Merger] Successfully consolidated duplicate user and updated primary user.`);
+  }
+  
+  return primaryUser;
+};
+
 const getUsers = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -30,23 +68,31 @@ const getUsers = async (req, res, next) => {
 const getUser = async (req, res, next) => {
   try {
     const { address } = req.params;
-    let user = await User.findOne({ walletAddress: address.toLowerCase() });
+    let user = null;
 
-    // Fallback: If address not found, check if privyUserId is active to consolidate identity
-    if (!user && req.user && req.user.privyUserId) {
+    if (req.user && req.user.privyUserId) {
       user = await User.findOne({ privyUserId: req.user.privyUserId });
-      if (user) {
-        const oldAddress = user.walletAddress;
-        user.walletAddress = address.toLowerCase();
-        user.lastActiveAt = new Date();
-        await user.save();
+      
+      if (user && address) {
+        user = await mergeDuplicateUsersIfNeeded(user, address);
+        
+        if (address.toLowerCase().startsWith('0x') && user.walletAddress !== address.toLowerCase()) {
+          console.log(`[Identity Consolidation] Migrating user '${user.profile.displayName}' walletAddress from '${user.walletAddress}' to newly provisioned address '${address.toLowerCase()}'`);
+          const oldAddress = user.walletAddress;
+          user.walletAddress = address.toLowerCase();
+          user.lastActiveAt = new Date();
+          await user.save();
 
-        // Rename the leaderboard entry address to keep the point history and rank intact
-        await LeaderboardEntry.findOneAndUpdate(
-          { walletAddress: oldAddress.toLowerCase() },
-          { $set: { walletAddress: address.toLowerCase(), updatedAt: new Date() } }
-        );
+          await LeaderboardEntry.findOneAndUpdate(
+            { walletAddress: oldAddress.toLowerCase() },
+            { $set: { walletAddress: address.toLowerCase(), updatedAt: new Date() } }
+          );
+        }
       }
+    }
+
+    if (!user && address) {
+      user = await User.findOne({ walletAddress: address.toLowerCase() });
     }
 
     if (!user) {
@@ -72,15 +118,35 @@ const createUser = async (req, res, next) => {
 
     if (privyUserId) {
       user = await User.findOne({ privyUserId });
+      
+      if (user) {
+        user = await mergeDuplicateUsersIfNeeded(user, walletAddress);
+      }
     }
+    
     if (!user) {
       user = await User.findOne({ walletAddress: walletAddress.toLowerCase() });
     }
 
     if (user) {
-      // If the user logs in with a new active wallet linked to their Privy profile, update it
-      if (user.walletAddress !== walletAddress.toLowerCase()) {
-        user.walletAddress = walletAddress.toLowerCase();
+      let changed = false;
+      if (privyUserId && user.privyUserId !== privyUserId) {
+        user.privyUserId = privyUserId;
+        changed = true;
+      }
+      
+      if (walletAddress.toLowerCase().startsWith('0x') || !user.walletAddress.startsWith('0x')) {
+        if (user.walletAddress !== walletAddress.toLowerCase()) {
+          user.walletAddress = walletAddress.toLowerCase();
+          changed = true;
+        }
+      }
+      
+      if (email && user.email !== email) {
+        user.email = email;
+        changed = true;
+      }
+      if (changed) {
         user.lastActiveAt = new Date();
         await user.save();
       }
@@ -102,7 +168,6 @@ const createUser = async (req, res, next) => {
       lastActiveAt: new Date()
     });
 
-    // Seed default LeaderboardEntry immediately so they show up on the ladder instantly
     await LeaderboardEntry.findOneAndUpdate(
       { walletAddress: walletAddress.toLowerCase() },
       {
@@ -137,7 +202,19 @@ const updateUser = async (req, res, next) => {
     const { address } = req.params;
     const { profile, email } = req.body;
 
-    const user = await User.findOne({ walletAddress: address.toLowerCase() });
+    let user = null;
+    if (req.user && req.user.privyUserId) {
+      user = await User.findOne({ privyUserId: req.user.privyUserId });
+      
+      if (user && address) {
+        user = await mergeDuplicateUsersIfNeeded(user, address);
+      }
+    }
+    
+    if (!user && address) {
+      user = await User.findOne({ walletAddress: address.toLowerCase() });
+    }
+
     if (!user) {
       return res.status(404).json(error('User not found'));
     }
@@ -157,7 +234,7 @@ const updateUser = async (req, res, next) => {
 
     if (profile && (profile.displayName || profile.organization)) {
       await LeaderboardEntry.findOneAndUpdate(
-        { walletAddress: address.toLowerCase() },
+        { walletAddress: user.walletAddress.toLowerCase() },
         {
           $set: {
             ...(profile.displayName && { displayName: profile.displayName }),

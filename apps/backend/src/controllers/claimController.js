@@ -82,7 +82,7 @@ const parseClaim = async (req, res, next) => {
         await User.findOneAndUpdate(
           { walletAddress: walletAddress.toLowerCase() },
           { $set: { lastActiveAt: new Date() } },
-          { upsert: true }
+          { upsert: false }
         );
       } catch (e) {
         console.error('Background task error:', e.message);
