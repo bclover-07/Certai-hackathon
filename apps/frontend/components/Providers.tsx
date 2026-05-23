@@ -5,8 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PrivyProvider } from "@privy-io/react-auth";
 import { baseSepolia } from "viem/chains";
 
-import AuthGatewayModal from "./auth/AuthGatewayModal";
-
 interface ProvidersProps {
   children: ReactNode;
 }
@@ -21,7 +19,7 @@ export default function Providers({ children }: ProvidersProps) {
     },
   }));
 
-  const privyAppId = process.env.NEXT_PUBLIC_PRIVY_APP_ID || "clt5x1x8a02c81804d9p5u6o5"; // Demo ID if not set
+  const privyAppId = process.env.NEXT_PUBLIC_PRIVY_APP_ID || "clt5x1x8a02c81804d9p5u6o5";
 
   return (
     <PrivyProvider
@@ -45,7 +43,6 @@ export default function Providers({ children }: ProvidersProps) {
     >
       <QueryClientProvider client={queryClient}>
         {children}
-        <AuthGatewayModal />
       </QueryClientProvider>
     </PrivyProvider>
   );

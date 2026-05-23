@@ -6,6 +6,7 @@ import { usePrivy } from "../../../hooks/usePrivy";
 import { BACKEND_URL } from "../../../lib/constants";
 import GlassCard from "../../../components/ui/GlassCard";
 import NeonButton from "../../../components/ui/NeonButton";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function OnboardPage() {
   const { user, getAccessToken, ready, authenticated } = usePrivy();
@@ -19,8 +20,8 @@ export default function OnboardPage() {
   const [bio, setBio] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [checkingOnboarded, setCheckingOnboarded] = useState(true);
+  const [errorMsg, setErrorMsg] = useState("");
 
-  // Pre-fill displayName from Privy login method (Google profile name or email username)
   useEffect(() => {
     if (ready && user && !displayName) {
       const googleName = user.google?.name || 
@@ -29,7 +30,6 @@ export default function OnboardPage() {
       if (googleName) {
         setDisplayName(googleName);
       } else if (user.email?.address) {
-        // Fallback to username part of the email address
         setDisplayName(user.email.address.split("@")[0]);
       }
     }
@@ -88,11 +88,11 @@ export default function OnboardPage() {
     if (!displayName.trim() || isSubmitting) return;
 
     setIsSubmitting(true);
+    setErrorMsg("");
     try {
       const token = await getAccessToken();
       const walletAddress = user?.wallet?.address || user?.id || "0x0000000000000000000000000000000000000000";
 
-      // Dynamically extract email address from standard email or Google OAuth accounts
       const emailAddress = user?.email?.address || user?.google?.email || 
         (user?.linkedAccounts?.find((acc: any) => acc.type === "email" || acc.type === "google_oauth") as any)?.address || 
         (user?.linkedAccounts?.find((acc: any) => acc.type === "email" || acc.type === "google_oauth") as any)?.email || "";
@@ -121,11 +121,11 @@ export default function OnboardPage() {
         router.push("/dashboard");
       } else {
         const errData = await res.json();
-        throw new Error(errData.error || "Onboarding failed");
+        throw new Error(errData.message || errData.error || "Onboarding failed");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert("Failed to submit onboarding profile. Please try again.");
+      setErrorMsg(err.message || "Failed to submit onboarding profile. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -133,12 +133,10 @@ export default function OnboardPage() {
 
   return (
     <div className="relative min-h-screen bg-[#070a24] flex items-center justify-center p-6 overflow-hidden">
-      {/* Glow circles */}
       <div className="absolute top-[-10%] left-[-10%] h-[50%] w-[50%] rounded-full bg-cyan-500/5 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] h-[50%] w-[50%] rounded-full bg-purple-500/5 blur-[120px] pointer-events-none" />
 
       <GlassCard glowColor="purple" className="w-full max-w-xl p-8 space-y-6 animate-scale-in">
-        {/* Progress header */}
         <div className="flex items-center justify-between border-b border-slate-800 pb-4">
           <span className="text-xs font-bold text-slate-500 uppercase tracking-widest font-mono">
             Onboarding Wizard
@@ -148,7 +146,6 @@ export default function OnboardPage() {
           </span>
         </div>
 
-        {/* STEP 1: Role picker */}
         {step === 1 && (
           <div className="space-y-6 animate-fade-in">
             <div className="space-y-2">
@@ -206,7 +203,6 @@ export default function OnboardPage() {
           </div>
         )}
 
-        {/* STEP 2: Name and specialty */}
         {step === 2 && (
           <div className="space-y-6 animate-fade-in">
             <div className="space-y-2">
@@ -265,7 +261,6 @@ export default function OnboardPage() {
           </div>
         )}
 
-        {/* STEP 3: Bio and Organization */}
         {step === 3 && (
           <form onSubmit={handleSubmit} className="space-y-6 animate-fade-in">
             <div className="space-y-2">
@@ -322,6 +317,20 @@ export default function OnboardPage() {
             </div>
           </form>
         )}
+
+        <AnimatePresence>
+          {errorMsg && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="mt-4 p-3 rounded-xl border border-red-500/20 bg-red-500/5 text-xs text-red-300 font-mono text-center flex items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(239,68,68,0.05)]"
+            >
+              <span>⚠️</span>
+              <span>{errorMsg}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </GlassCard>
     </div>
   );
