@@ -120,8 +120,14 @@ export default function OnboardPage() {
       if (res.ok) {
         router.push("/dashboard");
       } else {
-        const errData = await res.json();
-        throw new Error(errData.message || errData.error || "Onboarding failed");
+        let errMessage = `Onboarding failed (${res.status})`;
+        try {
+          const errData = await res.json();
+          errMessage = errData.message || errData.error || errMessage;
+        } catch {
+          // Response was not JSON (e.g. HTML error page)
+        }
+        throw new Error(errMessage);
       }
     } catch (err: any) {
       console.error(err);
