@@ -4,8 +4,21 @@ const MINT_CREDENTIAL_ABI = [
   "function mintCredential(address holder, string credentialType, string title, string issuerName, uint256 hoursCompleted, uint256 expiresAt, string metadataURI)",
 ];
 
+const path = require("path");
+const fs = require("fs");
+
+let deployed = null;
+try {
+  const deployedPath = path.join(__dirname, "../../../../contracts/deployed.json");
+  if (fs.existsSync(deployedPath)) {
+    deployed = JSON.parse(fs.readFileSync(deployedPath, "utf8"));
+  }
+} catch (e) {
+  // ignore
+}
+
 const buildCredentialCalldata = (credential, walletAddress) => {
-  const contractAddress = process.env.CERTNFT_CONTRACT_ADDRESS;
+  const contractAddress = process.env.CERTNFT_CONTRACT_ADDRESS || (deployed && deployed.contracts && deployed.contracts.CertNFT) || "0x5FbDB2315678afecb367f032d93F642f64180aa3";
   if (!contractAddress) {
     throw new Error("CERTNFT_CONTRACT_ADDRESS environment variable is not set");
   }
