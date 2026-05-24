@@ -115,12 +115,12 @@ export default function ActivityFeed() {
                   </p>
                   {activity.txHash && (
                     <a
-                      href={`https://sepolia.basescan.org/tx/${activity.txHash}`}
+                      href={`/explorer/${activity.txHash}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="mt-1.5 inline-flex items-center text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 transition-all duration-200"
                     >
-                      ⛓️ Basescan Receipt
+                      ⛓️ Attestation Receipt
                     </a>
                   )}
                 </div>

@@ -83,9 +83,9 @@ export default function ConfirmedBadge({
           <span className="text-slate-400">Locked Holder EOA</span>
         </div>
         <div className="flex flex-col gap-1 mt-2">
-          <span className="text-slate-500 font-bold uppercase">Basescan Receipt:</span>
+          <span className="text-slate-500 font-bold uppercase">Attestation Receipt:</span>
           <a
-            href={`https://sepolia.basescan.org/tx/${txHash}`}
+            href={`/explorer/${txHash}`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-[11px] text-cyan-400 hover:text-cyan-300 truncate"

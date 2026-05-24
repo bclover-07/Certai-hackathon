@@ -236,12 +236,12 @@ export default function QRVerifyPage() {
               <div>
                 <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500">On-Chain Transaction</h3>
                 <a
-                  href={`https://sepolia.basescan.org/tx/${credential.txHash}`}
+                  href={`/explorer/${credential.txHash}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-xs text-cyan-400 hover:text-cyan-300 mt-1 font-semibold transition-colors"
                 >
-                  🔗 View on Basescan API ↗
+                  🔗 View Attestation Ledger ↗
                 </a>
               </div>
             )}

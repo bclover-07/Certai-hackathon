@@ -268,12 +268,12 @@ export default function WorldPage() {
             {inspectedCred.txHash && (
               <div className="pt-4 border-t border-slate-800/60 mt-4">
                 <a
-                  href={`https://sepolia.basescan.org/tx/${inspectedCred.txHash}`}
+                  href={`/explorer/${inspectedCred.txHash}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex w-full items-center justify-center rounded-xl bg-cyan-500/10 border border-cyan-500/20 py-2.5 text-xs font-semibold text-cyan-300 hover:bg-cyan-500 hover:text-white transition-all duration-300 shadow-[0_0_15px_rgba(6,182,212,0.1)]"
                 >
-                  ⛓️ Explorer Basescan Ledger
+                  ⛓️ Explorer Attestation Ledger
                 </a>
               </div>
             )}

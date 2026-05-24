@@ -3,15 +3,7 @@ import { useClaimStore } from '../store/claimStore';
 import { useWalletStore } from '../store/walletStore';
 import { usePrivy, useWallets } from './usePrivy';
 import { BACKEND_URL } from '../lib/constants';
-
-let UGFClient: any = null;
-try {
-  const req = eval('require');
-  const UGFModule = req('@tychilabs/ugf-testnet-js');
-  UGFClient = UGFModule.UGFClient;
-} catch (e) {
-  // UGF testnet JS not loaded, running in simulation mode
-}
+import { UGFClient } from '@tychilabs/ugf-testnet-js';
 
 export const useUGFExecute = () => {
   const { currentCredential, setUGFStage, addMessage, setCredential } = useClaimStore();
@@ -54,8 +46,9 @@ export const useUGFExecute = () => {
       } as any;
 
       const mockTokenId = Math.floor(Math.random() * 1000000).toString();
+      const isMockAuth = typeof window !== 'undefined' && localStorage.getItem('certai_mock_auth');
 
-      if (UGFClient) {
+      if (UGFClient && !isMockAuth) {
         const client = new UGFClient();
 
         await client.auth.login(signer);
@@ -72,7 +65,8 @@ export const useUGFExecute = () => {
           payment_chain_type: 'evm',
           tx_object: JSON.stringify(txObj),
           dest_chain_id: '84532',
-          dest_chain_type: 'evm'
+          dest_chain_type: 'evm',
+          payer_address: address
         });
 
         setUGFStage('settling');

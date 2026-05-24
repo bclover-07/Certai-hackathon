@@ -226,12 +226,12 @@ export default function CredentialCard({
         <div className="mt-6 flex items-center justify-between gap-4 border-t border-slate-800/60 pt-4">
           {credential.txHash ? (
             <a
-              href={`https://sepolia.basescan.org/tx/${credential.txHash}`}
+              href={`/explorer/${credential.txHash}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition-colors duration-200 flex items-center gap-1"
             >
-              🔗 View on Basescan
+              🔗 View Attestation Ledger
             </a>
           ) : (
             <div className="text-xs text-slate-600 font-semibold italic">Gasless relaying...</div>

@@ -208,11 +208,33 @@ const revokeCredential = async (req, res, next) => {
   }
 };
 
+const getCredentialByTxHash = async (req, res, next) => {
+  try {
+    const { txHash } = req.params;
+    if (!txHash) {
+      return res.status(400).json(error('Transaction hash required'));
+    }
+
+    const credential = await Credential.findOne({
+      txHash: { $regex: new RegExp("^" + txHash + "$", "i") }
+    });
+
+    if (!credential) {
+      return res.status(404).json(error('Credential not found for this transaction hash'));
+    }
+
+    return res.json(success(credential));
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   getCredentials,
   getCredential,
   getHolderCredentials,
   updateCredentialStatus,
   upgradeTrustLevel,
-  revokeCredential
+  revokeCredential,
+  getCredentialByTxHash
 };
